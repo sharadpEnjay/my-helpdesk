@@ -1,0 +1,19 @@
+{
+  "name": "bun-fullstack-app",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "/home/enjay/.bun/bin/bun --filter \"*\" dev"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
