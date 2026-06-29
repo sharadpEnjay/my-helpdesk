@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "/home/enjay/.bun/bin/bun --watch index.ts",
-    "start": "/home/enjay/.bun/bin/bun index.ts"
+    "start": "/home/enjay/.bun/bin/bun index.ts",
+    "seed": "/home/enjay/.bun/bin/bun prisma/seed.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -16,9 +17,13 @@
   "peerDependencies": {
     "typescript": "^5"
   },
+  "prisma": {
+    "seed": "bun prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "better-auth": "^1.6.20",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "pg": "^8.22.0"

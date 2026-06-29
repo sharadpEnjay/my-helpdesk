@@ -1,11 +1,18 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
+import { requireAuth } from "./middleware/auth";
 import prisma from "./db";
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(cors());
+
+// Better Auth handler must be before express.json()
+app.all("/api/auth/{*splat}", toNodeHandler(auth));
+
 app.use(express.json());
 
 app.get("/api/hello", (req: Request, res: Response) => {
@@ -29,7 +36,11 @@ app.get("/api/health", async (req: Request, res: Response) => {
   });
 });
 
-app.get("/api/tickets", async (req: Request, res: Response) => {
+app.get("/api/me", requireAuth, (req: Request, res: Response) => {
+  res.json({ user: req.user });
+});
+
+app.get("/api/tickets", requireAuth, async (req: Request, res: Response) => {
   try {
     const tickets = await prisma.ticket.findMany();
     res.json(tickets);
