@@ -9,8 +9,8 @@ function App() {
 
   if (isPending) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-10 h-10 border-3 border-white/10 border-t-blue-400 rounded-full animate-spin" />
       </div>
     );
   }

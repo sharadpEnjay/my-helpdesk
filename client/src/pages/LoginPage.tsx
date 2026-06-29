@@ -41,39 +41,53 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card glass">
-        <h1 className="login-title">Helpdesk</h1>
-        <p className="login-subtitle">Sign in to your account</p>
+    <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="w-full max-w-md p-10 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl">
+        <h1 className="mb-2 text-3xl font-extrabold text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Helpdesk
+        </h1>
+        <p className="text-center text-slate-400 mb-8">Sign in to your account</p>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">
+          <div className="mb-5">
+            <label className="block mb-2 text-sm font-medium text-slate-400" htmlFor="email">
               Email
             </label>
             <input
               id="email"
-              className={`form-input${errors.email ? " form-input-error" : ""}`}
+              className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white/87 text-base font-inherit outline-none transition-colors duration-200 box-border ${
+                errors.email
+                  ? "border-red-500 focus:border-red-500 focus:ring-3 focus:ring-red-500/15"
+                  : "border-white/10 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
+              }`}
               type="email"
               autoComplete="email"
               {...register("email")}
             />
-            {errors.email && <p className="field-error">{errors.email.message}</p>}
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">
+          <div className="mb-5">
+            <label className="block mb-2 text-sm font-medium text-slate-400" htmlFor="password">
               Password
             </label>
             <input
               id="password"
-              className={`form-input${errors.password ? " form-input-error" : ""}`}
+              className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white/87 text-base font-inherit outline-none transition-colors duration-200 box-border ${
+                errors.password
+                  ? "border-red-500 focus:border-red-500 focus:ring-3 focus:ring-red-500/15"
+                  : "border-white/10 focus:border-blue-400 focus:ring-3 focus:ring-blue-400/15"
+              }`}
               type="password"
               autoComplete="current-password"
               {...register("password")}
             />
-            {errors.password && <p className="field-error">{errors.password.message}</p>}
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
           </div>
-          {serverError && <p className="error-message">{serverError}</p>}
-          <button className="primary-btn login-btn" type="submit" disabled={isSubmitting}>
+          {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+          <button
+            className="w-full mt-2 py-4 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-none rounded-xl text-lg font-semibold cursor-pointer shadow-lg shadow-blue-600/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-blue-600/40 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+            type="submit"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
         </form>
