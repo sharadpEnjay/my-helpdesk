@@ -4,9 +4,10 @@ import { HealthCheck } from "../components/HealthCheck";
 
 interface HomePageProps {
   userName: string;
+  role?: string;
 }
 
-export function HomePage({ userName }: HomePageProps) {
+export function HomePage({ userName, role }: HomePageProps) {
   const [message, setMessage] = useState("Connecting to server...");
   const [count, setCount] = useState(0);
 
@@ -19,7 +20,7 @@ export function HomePage({ userName }: HomePageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">
-      <Navbar userName={userName} />
+      <Navbar userName={userName} role={role} />
       <div className="flex flex-col gap-8 px-8 pb-8 text-center max-w-5xl mx-auto">
         <header className="p-8 flex flex-col items-center gap-4 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl">
           <h1 className="m-0 text-5xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
