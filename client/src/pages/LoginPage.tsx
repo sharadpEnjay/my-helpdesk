@@ -1,27 +1,39 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { authClient } from "../lib/auth-client";
+
+const loginSchema = z.object({
+  email: z.email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    setServerError("");
 
     const { error } = await authClient.signIn.email({
-      email,
-      password,
+      email: data.email,
+      password: data.password,
     });
 
     if (error) {
-      setError(error.message ?? "Sign in failed");
-      setLoading(false);
+      setServerError(error.message ?? "Sign in failed");
       return;
     }
 
@@ -33,20 +45,19 @@ export function LoginPage() {
       <div className="login-card glass">
         <h1 className="login-title">Helpdesk</h1>
         <p className="login-subtitle">Sign in to your account</p>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="form-group">
             <label className="form-label" htmlFor="email">
               Email
             </label>
             <input
               id="email"
-              className="form-input"
+              className={`form-input${errors.email ? " form-input-error" : ""}`}
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
               autoComplete="email"
+              {...register("email")}
             />
+            {errors.email && <p className="field-error">{errors.email.message}</p>}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="password">
@@ -54,17 +65,16 @@ export function LoginPage() {
             </label>
             <input
               id="password"
-              className="form-input"
+              className={`form-input${errors.password ? " form-input-error" : ""}`}
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
               autoComplete="current-password"
+              {...register("password")}
             />
+            {errors.password && <p className="field-error">{errors.password.message}</p>}
           </div>
-          {error && <p className="error-message">{error}</p>}
-          <button className="primary-btn login-btn" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          {serverError && <p className="error-message">{serverError}</p>}
+          <button className="primary-btn login-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
