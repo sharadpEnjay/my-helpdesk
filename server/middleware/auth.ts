@@ -16,3 +16,13 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   req.session = session.session;
   next();
 }
+
+export function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    next();
+  };
+}

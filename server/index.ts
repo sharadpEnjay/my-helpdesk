@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { requireAuth } from "./middleware/auth";
@@ -8,18 +9,22 @@ import prisma from "./db";
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(",") ?? ["http://localhost:5173"],
+  credentials: true,
+}));
 
 // Better Auth handler must be before express.json()
 app.all("/api/auth/{*splat}", toNodeHandler(auth));
 
 app.use(express.json());
 
-app.get("/api/hello", (req: Request, res: Response) => {
+app.get("/api/hello", (_req: Request, res: Response) => {
   res.json({ message: "Hello from Express + Bun!" });
 });
 
-app.get("/api/health", async (req: Request, res: Response) => {
+app.get("/api/health", async (_req: Request, res: Response) => {
   let dbStatus = "ok";
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -28,24 +33,20 @@ app.get("/api/health", async (req: Request, res: Response) => {
     console.error("DB connection error:", err);
   }
 
-  res.json({ 
-    status: "ok", 
-    database: dbStatus,
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: "ok", database: dbStatus });
 });
 
 app.get("/api/me", requireAuth, (req: Request, res: Response) => {
   res.json({ user: req.user });
 });
 
-app.get("/api/tickets", requireAuth, async (req: Request, res: Response) => {
+app.get("/api/tickets", requireAuth, async (_req: Request, res: Response) => {
   try {
     const tickets = await prisma.ticket.findMany();
     res.json(tickets);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err) {
+    console.error("Ticket fetch error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
