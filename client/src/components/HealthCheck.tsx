@@ -14,7 +14,7 @@ export const HealthCheck = () => {
   const fetchHealth = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/health');
+      const response = await fetch('/api/health');
       const result = await response.json();
       setData(result);
       setError(null);
