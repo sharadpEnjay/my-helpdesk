@@ -31,12 +31,6 @@ cd client && bun run lint
 cd server && bunx prisma migrate dev      # create/apply migrations
 cd server && bunx prisma generate          # regenerate client after schema changes
 cd server && bunx prisma studio            # visual database browser
-
-# E2E tests (Playwright, uses separate test DB)
-bun run test:e2e                           # headless run
-bun run test:e2e:ui                        # interactive UI mode
-bun run test:e2e:headed                    # visible browser
-bun run test:e2e:report                    # open HTML report
 ```
 
 ## Architecture
@@ -59,15 +53,6 @@ bun run test:e2e:report                    # open HTML report
 - Entry: `client/src/main.tsx` → `client/src/App.tsx`
 - Linting: **oxlint** (configured in `client/.oxlintrc.json` with react + typescript + oxc plugins)
 - Vite proxy: `/api` → `http://localhost:3001` (configurable via `API_PROXY_TARGET` env var)
-
-### E2E Testing (`/e2e`)
-- **Playwright** with separate test database (`my-helpdesk-test`)
-- Config: `playwright.config.ts` (root)
-- Shared constants: `e2e/test-config.ts` (DB URLs, ports)
-- Global setup: `e2e/global-setup.ts` — creates test DB, runs migrations, seeds admin user
-- Global teardown: `e2e/global-teardown.ts` — no-op (preserves DB for inspection)
-- Test server on port **3002**, test client on port **5174** (dev uses 3001/5173)
-- Test files go in `e2e/` directory
 
 ### Key Conventions
 - TypeScript strict mode enabled across both workspaces
@@ -95,6 +80,10 @@ bun run test:e2e:report                    # open HTML report
 - `ALLOWED_ORIGINS` — comma-separated CORS origins (defaults to `http://localhost:5173`)
 - `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
 - `NODE_ENV=production` — enables secure cookies and auth rate limiting
+
+### E2E Testing
+- Always use the **e2e-test-writer** agent (subagent) to write, create, or update Playwright E2E tests — do not write them inline.
+- Test files live in `e2e/` with `.spec.ts` extension. The agent has full context on test infrastructure, conventions, and helpers.
 
 ### Note on `server/CLAUDE.md`
 The file at `server/CLAUDE.md` is a Bun-generated default. **Ignore its recommendations** about `Bun.serve()`, `bun:sqlite`, `Bun.sql`, and HTML imports — this project uses Express, Prisma with pg, and Vite.

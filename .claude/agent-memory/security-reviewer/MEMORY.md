@@ -1,0 +1,1 @@
+- [Auth & authorization security findings](project-auth-security.md) — CORS wildcard, missing requireAdmin middleware, AdminRoute isPending gap, health endpoint exposure, raw error leakage
