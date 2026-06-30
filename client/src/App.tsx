@@ -29,8 +29,8 @@ function App() {
           path="/"
           element={
             <HomePage
-              userName={session!.user.name}
-              role={session!.user.role}
+              userName={session?.user?.name ?? ""}
+              role={session?.user?.role ?? ""}
             />
           }
         />
@@ -39,8 +39,8 @@ function App() {
             path="/users"
             element={
               <UsersPage
-                userName={session!.user.name}
-                role={session!.user.role}
+                userName={session?.user?.name ?? ""}
+                role={session?.user?.role ?? ""}
               />
             }
           />

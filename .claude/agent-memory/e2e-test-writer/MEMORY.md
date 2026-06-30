@@ -1,0 +1,2 @@
+- [Auth test patterns](auth-test-patterns.md) — Better Auth password hash format, pg seeding helper, signInViaApi pattern for test setup
+- [E2E infrastructure](e2e-infrastructure.md) — pg in root devDependencies, test-config.ts ports, page.request shares cookies with browser context

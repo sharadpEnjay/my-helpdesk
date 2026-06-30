@@ -24,6 +24,11 @@ export default defineConfig({
     baseURL: `http://localhost:${TEST_CLIENT_PORT}`,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    actionTimeout: 10_000,
+  },
+
+  expect: {
+    timeout: 10_000,
   },
 
   projects: [
@@ -46,6 +51,8 @@ export default defineConfig({
         DATABASE_URL: TEST_DB_URL,
         PORT: String(TEST_SERVER_PORT),
         BETTER_AUTH_URL: TEST_BETTER_AUTH_URL,
+        ALLOWED_ORIGINS: `http://localhost:${TEST_CLIENT_PORT}`,
+        TRUSTED_ORIGINS: `http://localhost:${TEST_CLIENT_PORT}`,
       },
     },
     {
