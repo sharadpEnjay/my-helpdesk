@@ -23,7 +23,7 @@ export const auth = betterAuth({
   },
   trustedOrigins: process.env.TRUSTED_ORIGINS?.split(",") ?? ["http://localhost:5173"],
   rateLimit: {
-    enabled: true,
+    enabled: process.env.NODE_ENV === "production",
     window: 60,
     max: 10,
   },

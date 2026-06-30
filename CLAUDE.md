@@ -31,6 +31,12 @@ cd client && bun run lint
 cd server && bunx prisma migrate dev      # create/apply migrations
 cd server && bunx prisma generate          # regenerate client after schema changes
 cd server && bunx prisma studio            # visual database browser
+
+# E2E tests (Playwright, uses separate test DB)
+bun run test:e2e                           # headless run
+bun run test:e2e:ui                        # interactive UI mode
+bun run test:e2e:headed                    # visible browser
+bun run test:e2e:report                    # open HTML report
 ```
 
 ## Architecture
@@ -52,17 +58,25 @@ cd server && bunx prisma studio            # visual database browser
 - **React 19** + **Vite 8** + TypeScript
 - Entry: `client/src/main.tsx` → `client/src/App.tsx`
 - Linting: **oxlint** (configured in `client/.oxlintrc.json` with react + typescript + oxc plugins)
-- Currently fetches from `http://localhost:3001` directly (no proxy configured)
+- Vite proxy: `/api` → `http://localhost:3001` (configurable via `API_PROXY_TARGET` env var)
+
+### E2E Testing (`/e2e`)
+- **Playwright** with separate test database (`my-helpdesk-test`)
+- Config: `playwright.config.ts` (root)
+- Shared constants: `e2e/test-config.ts` (DB URLs, ports)
+- Global setup: `e2e/global-setup.ts` — creates test DB, runs migrations, seeds admin user
+- Global teardown: `e2e/global-teardown.ts` — no-op (preserves DB for inspection)
+- Test server on port **3002**, test client on port **5174** (dev uses 3001/5173)
+- Test files go in `e2e/` directory
 
 ### Key Conventions
 - TypeScript strict mode enabled across both workspaces
 - `noUncheckedIndexedAccess: true` — array/object index access returns `T | undefined`
 - ESModules throughout (`"type": "module"`)
-- No test framework configured yet
 
 ### Authentication
 - **Better Auth** with email/password and database sessions
-- Auth instance: `server/auth.ts` — uses its own PrismaClient with `@prisma/adapter-pg`
+- Auth instance: `server/auth.ts` — shares PrismaClient from `server/db.ts`
 - Middleware: `server/middleware/auth.ts` — `requireAuth` guards protected routes, sets `req.user` / `req.session`
 - Type augmentation: `server/types/express.d.ts` extends Express `Request` with user/session
 - Express 5 wildcard syntax: use `{*splat}` not `*` in route patterns
@@ -77,6 +91,10 @@ cd server && bunx prisma studio            # visual database browser
 - `server/.env` (gitignored) — must be created manually
 - `DATABASE_URL` — PostgreSQL connection string
 - `BETTER_AUTH_URL` — server base URL (e.g. `http://localhost:3001`)
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — seed script admin credentials
+- `ALLOWED_ORIGINS` — comma-separated CORS origins (defaults to `http://localhost:5173`)
+- `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
+- `NODE_ENV=production` — enables secure cookies and auth rate limiting
 
 ### Note on `server/CLAUDE.md`
 The file at `server/CLAUDE.md` is a Bun-generated default. **Ignore its recommendations** about `Bun.serve()`, `bun:sqlite`, `Bun.sql`, and HTML imports — this project uses Express, Prisma with pg, and Vite.
