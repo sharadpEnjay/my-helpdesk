@@ -88,6 +88,15 @@ cd server && bunx prisma studio            # visual database browser
 - `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
 - `NODE_ENV=production` — enables secure cookies and auth rate limiting
 
+### Component Testing
+- **Vitest** + **React Testing Library** with jsdom environment
+- Config: `client/vite.config.ts` (`test` block), setup: `client/src/test/setup.ts`
+- Test files live next to the component: `ComponentName.test.tsx`
+- Use `renderWithProviders` from `@/test/render` to wrap components with `QueryClientProvider` + `MemoryRouter`
+- Mock axios with `vi.mock("axios")` and `vi.mocked(axios)` for API calls
+- Run once: `cd client && bun run test`
+- Run in watch mode: `cd client && bun run test:watch`
+
 ### E2E Testing
 - Always use the **e2e-test-writer** agent (subagent) to write, create, or update Playwright E2E tests — do not write them inline.
 - Test files live in `e2e/` with `.spec.ts` extension. The agent has full context on test infrastructure, conventions, and helpers.
