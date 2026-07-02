@@ -1,9 +1,9 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
-import { requireAuth } from "./middleware/auth";
+import { requireAuth, requireRole } from "./middleware/auth";
 import prisma from "./db";
 
 const app = express();
@@ -41,13 +41,21 @@ app.get("/api/me", requireAuth, (req: Request, res: Response) => {
 });
 
 app.get("/api/tickets", requireAuth, async (_req: Request, res: Response) => {
-  try {
-    const tickets = await prisma.ticket.findMany();
-    res.json(tickets);
-  } catch (err) {
-    console.error("Ticket fetch error:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
+  const tickets = await prisma.ticket.findMany();
+  res.json(tickets);
+});
+
+app.get("/api/users", requireAuth, requireRole("admin"), async (_req: Request, res: Response) => {
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(users);
+});
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 app.listen(port, () => {

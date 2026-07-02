@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { Navbar } from "../components/Navbar";
 import { HealthCheck } from "../components/HealthCheck";
 
@@ -8,15 +10,12 @@ interface HomePageProps {
 }
 
 export function HomePage({ userName, role }: HomePageProps) {
-  const [message, setMessage] = useState("Connecting to server...");
   const [count, setCount] = useState(0);
 
-  useEffect(() => {
-    fetch("/api/hello")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => setMessage("Failed to connect to server: " + err.message));
-  }, []);
+  const { data: message = "Connecting to server..." } = useQuery({
+    queryKey: ["hello"],
+    queryFn: () => axios.get("/api/hello").then((res) => res.data.message as string),
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">

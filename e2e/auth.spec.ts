@@ -1,3 +1,4 @@
+
 import { test, expect, type Page } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@example.com";
@@ -362,7 +363,7 @@ test.describe("Session Persistence", () => {
     await page.waitForURL("/");
 
     await expect(page).toHaveURL("/");
-    await expect(page.getByText("Admin")).toBeVisible();
+    await expect(page.getByRole("navigation").getByText("Admin")).toBeVisible();
   });
 });
 

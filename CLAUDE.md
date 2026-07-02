@@ -54,6 +54,13 @@ cd server && bunx prisma studio            # visual database browser
 - Linting: **oxlint** (configured in `client/.oxlintrc.json` with react + typescript + oxc plugins)
 - Vite proxy: `/api` → `http://localhost:3001` (configurable via `API_PROXY_TARGET` env var)
 
+### Data Fetching
+- **Axios** for all HTTP requests — do not use `fetch`
+- **TanStack React Query** (`@tanstack/react-query`) for server state — do not use `useEffect` + `useState` for API calls
+- `QueryClientProvider` is set up in `client/src/main.tsx`
+- Use `useQuery` for GET requests, `useMutation` for POST/PUT/DELETE
+- For polling, use `refetchInterval` instead of `setInterval`
+
 ### Key Conventions
 - TypeScript strict mode enabled across both workspaces
 - `noUncheckedIndexedAccess: true` — array/object index access returns `T | undefined`
