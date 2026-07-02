@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
   id: string;
@@ -37,8 +38,27 @@ export function UsersPage({ userName, role }: UsersPageProps) {
         <h1 className="text-4xl font-bold mb-6">Users</h1>
 
         {isPending && (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-3 border-slate-600 border-t-purple-400 rounded-full animate-spin" />
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-white/10 hover:bg-white/[0.02]">
+                  <TableHead className="text-slate-400">Name</TableHead>
+                  <TableHead className="text-slate-400">Email</TableHead>
+                  <TableHead className="text-slate-400">Role</TableHead>
+                  <TableHead className="text-slate-400">Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-white/10">
+                    <TableCell><Skeleton className="h-4 w-24 bg-white/10" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-40 bg-white/10" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-14 rounded-full bg-white/10" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20 bg-white/10" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 
