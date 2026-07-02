@@ -3,8 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
-import { requireAuth, requireRole } from "./middleware/auth";
+import { requireAuth } from "./middleware/auth";
 import prisma from "./db";
+import usersRouter from "./routes/users";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -45,13 +46,7 @@ app.get("/api/tickets", requireAuth, async (_req: Request, res: Response) => {
   res.json(tickets);
 });
 
-app.get("/api/users", requireAuth, requireRole("admin"), async (_req: Request, res: Response) => {
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
-  });
-  res.json(users);
-});
+app.use("/api/users", usersRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);

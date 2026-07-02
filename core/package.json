@@ -1,0 +1,11 @@
+{
+  "name": "core",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./schemas/*": "./schemas/*.ts"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

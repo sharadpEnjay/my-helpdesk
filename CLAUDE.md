@@ -35,7 +35,12 @@ cd server && bunx prisma studio            # visual database browser
 
 ## Architecture
 
-**Monorepo** managed by Bun workspaces (root `package.json` → `workspaces: ["server", "client"]`).
+**Monorepo** managed by Bun workspaces (root `package.json` → `workspaces: ["core", "server", "client"]`).
+
+### Core (`/core`)
+- Shared package for code used by both server and client
+- Zod schemas live in `core/schemas/` (e.g. `core/schemas/user.ts`) — define schemas here, import as `"core/schemas/user"` in both client and server
+- Exports via `"core/schemas/*"` path mapping in `core/package.json`
 
 ### Server (`/server`)
 - **Express 5** on Bun runtime, single entry point: `server/index.ts`
@@ -60,6 +65,12 @@ cd server && bunx prisma studio            # visual database browser
 - `QueryClientProvider` is set up in `client/src/main.tsx`
 - Use `useQuery` for GET requests, `useMutation` for POST/PUT/DELETE
 - For polling, use `refetchInterval` instead of `setInterval`
+
+### Validation & Forms
+- **Zod v4** (`zod`) — define shared schemas in `core/schemas/`, import in both client and server
+- Use Zod schemas for all request body validation on API endpoints
+- Use Prisma-generated enums (e.g. `Role` from `@prisma/client`) instead of hardcoded string values
+- **React Hook Form** + `@hookform/resolvers/zod` for all client-side forms — use `useForm` with `zodResolver`, not manual `useState` validation
 
 ### Key Conventions
 - TypeScript strict mode enabled across both workspaces
