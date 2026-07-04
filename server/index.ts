@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
@@ -6,6 +6,8 @@ import { auth } from "./auth";
 import { requireAuth } from "./middleware/auth";
 import prisma from "./db";
 import usersRouter from "./routes/users";
+import webhooksRouter from "./routes/webhooks";
+import { startSmtpServer } from "./smtp";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -47,6 +49,7 @@ app.get("/api/tickets", requireAuth, async (_req: Request, res: Response) => {
 });
 
 app.use("/api/users", usersRouter);
+app.use("/api/webhooks", webhooksRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
@@ -55,4 +58,5 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+  startSmtpServer();
 });

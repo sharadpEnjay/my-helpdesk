@@ -1,0 +1,2 @@
+- [E2E infra layout](project-e2e-setup.md) — ports, config files, seeded admin/agent test users, existing spec files
+- [API/webhook testing pattern](project-e2e-api-testing.md) — hit test server directly for non-UI endpoints, wire test secrets via playwright.config.ts webServer env, verify Zod error strings by running safeParse directly

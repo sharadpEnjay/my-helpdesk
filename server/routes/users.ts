@@ -1,19 +1,10 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response } from "express";
 import { Role as PrismaRole } from "@prisma/client";
-import { ZodType } from "zod";
 import { hashPassword, generateRandomString } from "better-auth/crypto";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { parseBody } from "../utils/validation";
 import prisma from "../db";
 import { createUserSchema, updateUserSchema, Role } from "core/schemas/user";
-
-function parseBody<T>(schema: ZodType<T>, body: unknown, res: Response): T | null {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    res.status(400).json({ error: result.error.issues[0]!.message });
-    return null;
-  }
-  return result.data;
-}
 
 const router = Router();
 
@@ -69,12 +60,13 @@ router.post("/", requireAuth, requireRole(Role.admin), async (req: Request, res:
 });
 
 router.patch("/:id", requireAuth, requireRole(Role.admin), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
   const data = parseBody(updateUserSchema, req.body, res);
   if (!data) return;
 
   const { name, email, password, role } = data;
 
-  const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
+  const existing = await prisma.user.findUnique({ where: { id } });
   if (!existing) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -104,7 +96,7 @@ router.patch("/:id", requireAuth, requireRole(Role.admin), async (req: Request, 
   }
 
   const user = await prisma.user.update({
-    where: { id: req.params.id },
+    where: { id },
     data: updateData,
     select: { id: true, name: true, email: true, role: true, createdAt: true },
   });
@@ -113,7 +105,8 @@ router.patch("/:id", requireAuth, requireRole(Role.admin), async (req: Request, 
 });
 
 router.delete("/:id", requireAuth, requireRole(Role.admin), async (req: Request, res: Response) => {
-  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const user = await prisma.user.findUnique({ where: { id } });
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -125,7 +118,7 @@ router.delete("/:id", requireAuth, requireRole(Role.admin), async (req: Request,
   }
 
   await prisma.user.update({
-    where: { id: req.params.id },
+    where: { id },
     data: { deletedAt: new Date() },
   });
 

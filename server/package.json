@@ -4,13 +4,18 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "postinstall": "bunx prisma generate && cp ../node_modules/.bun/@prisma+client@7.8.0*/node_modules/.prisma/client/index.d.ts ../node_modules/.bun/@prisma+client@7.8.0*/node_modules/.prisma/client/default.d.ts",
     "dev": "/home/enjay/.bun/bin/bun --watch index.ts",
     "start": "/home/enjay/.bun/bin/bun index.ts",
     "seed": "/home/enjay/.bun/bin/bun prisma/seed.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/mailparser": "^3.4.6",
     "@types/pg": "^8.20.0",
+    "@types/smtp-server": "^3.5.13",
     "dotenv": "^17.4.2",
     "prisma": "^7.8.0"
   },
@@ -24,11 +29,13 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "better-auth": "^1.6.20",
+    "core": "workspace:*",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helmet": "^8.2.0",
+    "mailparser": "^3.9.12",
     "pg": "^8.22.0",
-    "core": "workspace:*",
+    "smtp-server": "^3.19.1",
     "zod": "^4.4.3"
   }
 }

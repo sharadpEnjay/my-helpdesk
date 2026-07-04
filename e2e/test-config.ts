@@ -6,3 +6,4 @@ export const ADMIN_DB_URL =
 export const TEST_SERVER_PORT = 3002;
 export const TEST_CLIENT_PORT = 5174;
 export const TEST_BETTER_AUTH_URL = `http://localhost:${TEST_SERVER_PORT}`;
+export const TEST_WEBHOOK_SECRET = "e2e-test-inbound-email-webhook-secret";

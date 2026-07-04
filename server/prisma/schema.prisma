@@ -14,13 +14,36 @@ enum Role {
   agent
 }
 
+enum TicketStatus {
+  open
+  pending
+  resolved
+  closed
+}
+
+enum TicketCategory {
+  general
+  billing
+  technical
+  bug
+  feature_request
+}
+
 model Ticket {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  status      String   @default("OPEN")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int             @id @default(autoincrement())
+  subject      String
+  body         String
+  bodyHtml     String?
+  status       TicketStatus    @default(open)
+  category     TicketCategory?
+  senderName   String
+  senderEmail  String
+  assignedToId String?
+  assignedTo   user?           @relation(fields: [assignedToId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("ticket")
 }
 
 model user {
@@ -35,6 +58,7 @@ model user {
   deletedAt     DateTime?
   sessions      session[]
   accounts      account[]
+  tickets       Ticket[]
 }
 
 model session {

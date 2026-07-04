@@ -4,6 +4,7 @@ import {
   TEST_SERVER_PORT,
   TEST_CLIENT_PORT,
   TEST_BETTER_AUTH_URL,
+  TEST_WEBHOOK_SECRET,
 } from "./e2e/test-config.ts";
 
 export default defineConfig({
@@ -53,6 +54,7 @@ export default defineConfig({
         BETTER_AUTH_URL: TEST_BETTER_AUTH_URL,
         ALLOWED_ORIGINS: `http://localhost:${TEST_CLIENT_PORT}`,
         TRUSTED_ORIGINS: `http://localhost:${TEST_CLIENT_PORT}`,
+        INBOUND_EMAIL_WEBHOOK_SECRET: TEST_WEBHOOK_SECRET,
       },
     },
     {
