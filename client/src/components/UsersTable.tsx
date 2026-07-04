@@ -1,3 +1,4 @@
+import { PencilIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
@@ -21,9 +23,10 @@ interface UsersTableProps {
   users: User[];
   isPending: boolean;
   error: Error | null;
+  onEdit: (user: User) => void;
 }
 
-export function UsersTable({ users, isPending, error }: UsersTableProps) {
+export function UsersTable({ users, isPending, error, onEdit }: UsersTableProps) {
   if (isPending) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
@@ -34,6 +37,7 @@ export function UsersTable({ users, isPending, error }: UsersTableProps) {
               <TableHead className="text-slate-400">Email</TableHead>
               <TableHead className="text-slate-400">Role</TableHead>
               <TableHead className="text-slate-400">Joined</TableHead>
+              <TableHead className="text-slate-400 w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -43,6 +47,7 @@ export function UsersTable({ users, isPending, error }: UsersTableProps) {
                 <TableCell><Skeleton className="h-4 w-40 bg-white/10" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-14 rounded-full bg-white/10" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20 bg-white/10" /></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -68,6 +73,7 @@ export function UsersTable({ users, isPending, error }: UsersTableProps) {
             <TableHead className="text-slate-400">Email</TableHead>
             <TableHead className="text-slate-400">Role</TableHead>
             <TableHead className="text-slate-400">Joined</TableHead>
+            <TableHead className="text-slate-400 w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -83,11 +89,22 @@ export function UsersTable({ users, isPending, error }: UsersTableProps) {
               <TableCell className="text-slate-400">
                 {new Date(user.createdAt).toLocaleDateString()}
               </TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-slate-400 hover:text-white hover:bg-white/10"
+                  onClick={() => onEdit(user)}
+                  aria-label={`Edit ${user.name}`}
+                >
+                  <PencilIcon />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-slate-500 py-8">
+              <TableCell colSpan={5} className="text-center text-slate-500 py-8">
                 No users found
               </TableCell>
             </TableRow>

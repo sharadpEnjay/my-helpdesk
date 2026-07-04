@@ -1,4 +1,5 @@
-import { screen, within } from "@testing-library/react";
+import { screen, within, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { UsersPage } from "./UsersPage";
@@ -105,5 +106,46 @@ describe("UsersPage", () => {
     renderUsersPage({ userName: "Test User", role: "admin" });
 
     expect(screen.getByText("Test User")).toBeInTheDocument();
+  });
+
+  test("opens create user dialog when clicking Create User button", async () => {
+    mockedAxios.get.mockResolvedValue({ data: MOCK_USERS });
+    renderUsersPage();
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create User" }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Create New User")).toBeInTheDocument();
+  });
+
+  test("closes create user dialog when pressing Escape", async () => {
+    mockedAxios.get.mockResolvedValue({ data: MOCK_USERS });
+    renderUsersPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create User" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  test("closes create user dialog when clicking outside", async () => {
+    mockedAxios.get.mockResolvedValue({ data: MOCK_USERS });
+    renderUsersPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create User" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const overlay = document.querySelector("[data-slot='dialog-overlay']")!;
+    await userEvent.click(overlay);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 });

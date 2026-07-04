@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 import { Navbar } from "../components/Navbar";
 import { UsersTable } from "../components/UsersTable";
-import { CreateUserDialog } from "../components/CreateUserDialog";
+import { UserFormDialog, type DialogState } from "../components/UserFormDialog";
 import { Button } from "@/components/ui/button";
 
 interface User {
@@ -20,7 +20,7 @@ interface UsersPageProps {
 }
 
 export function UsersPage({ userName, role }: UsersPageProps) {
-  const [open, setOpen] = useState(false);
+  const [dialog, setDialog] = useState<DialogState>(null);
 
   const { data: users = [], isPending, error } = useQuery({
     queryKey: ["users"],
@@ -33,11 +33,11 @@ export function UsersPage({ userName, role }: UsersPageProps) {
       <div className="px-8 pb-8 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-4xl font-bold">Users</h1>
-          <Button onClick={() => setOpen(true)}>Create User</Button>
+          <Button onClick={() => setDialog("create")}>Create User</Button>
         </div>
 
-        <CreateUserDialog open={open} onClose={() => setOpen(false)} />
-        <UsersTable users={users} isPending={isPending} error={error} />
+        <UserFormDialog state={dialog} onClose={() => setDialog(null)} />
+        <UsersTable users={users} isPending={isPending} error={error} onEdit={setDialog} />
       </div>
     </div>
   );
