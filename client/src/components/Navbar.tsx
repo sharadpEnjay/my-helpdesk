@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { Role } from "core/schemas/user";
 import { authClient } from "../lib/auth-client";
 
 interface NavbarProps {
@@ -17,7 +18,7 @@ export function Navbar({ userName, role }: NavbarProps) {
         <Link to="/" className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent no-underline">
           Helpdesk
         </Link>
-        {role === "admin" && (
+        {role === Role.admin && (
           <Link to="/users" className="text-slate-400 font-medium hover:text-white transition-colors duration-200 no-underline">
             Users
           </Link>

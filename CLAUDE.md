@@ -69,7 +69,7 @@ cd server && bunx prisma studio            # visual database browser
 ### Validation & Forms
 - **Zod v4** (`zod`) — define shared schemas in `core/schemas/`, import in both client and server
 - Use Zod schemas for all request body validation on API endpoints
-- Use Prisma-generated enums (e.g. `Role` from `@prisma/client`) instead of hardcoded string values
+- Use the shared `Role` constant from `core/schemas/user` (e.g. `Role.admin`, `Role.agent`) instead of hardcoded string values — on the server, map to Prisma's `Role` enum (`PrismaRole`) only at the database boundary
 - **React Hook Form** + `@hookform/resolvers/zod` for all client-side forms — use `useForm` with `zodResolver`, not manual `useState` validation
 
 ### Key Conventions

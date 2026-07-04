@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { fromNodeHeaders } from "better-auth/node";
+import { Role } from "core/schemas/user";
 import { auth } from "../auth";
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -17,7 +18,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   next();
 }
 
-export function requireRole(...roles: string[]) {
+export function requireRole(...roles: Role[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
       res.status(403).json({ error: "Forbidden" });

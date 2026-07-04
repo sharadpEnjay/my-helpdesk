@@ -124,6 +124,7 @@ describe("UserFormDialog — create mode", () => {
         name: "John Doe",
         email: "john@example.com",
         password: "password123",
+        role: "agent",
       });
     });
   });

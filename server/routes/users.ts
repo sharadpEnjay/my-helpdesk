@@ -1,10 +1,10 @@
 import { Router, Request, Response } from "express";
-import { Role } from "@prisma/client";
+import { Role as PrismaRole } from "@prisma/client";
 import { ZodType } from "zod";
 import { hashPassword, generateRandomString } from "better-auth/crypto";
 import { requireAuth, requireRole } from "../middleware/auth";
 import prisma from "../db";
-import { createUserSchema, updateUserSchema } from "core/schemas/user";
+import { createUserSchema, updateUserSchema, Role } from "core/schemas/user";
 
 function parseBody<T>(schema: ZodType<T>, body: unknown, res: Response): T | null {
   const result = schema.safeParse(body);
@@ -17,19 +17,20 @@ function parseBody<T>(schema: ZodType<T>, body: unknown, res: Response): T | nul
 
 const router = Router();
 
-router.get("/", requireAuth, requireRole("admin"), async (_req: Request, res: Response) => {
+router.get("/", requireAuth, requireRole(Role.admin), async (_req: Request, res: Response) => {
   const users = await prisma.user.findMany({
+    where: { deletedAt: null },
     select: { id: true, name: true, email: true, role: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
   res.json(users);
 });
 
-router.post("/", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+router.post("/", requireAuth, requireRole(Role.admin), async (req: Request, res: Response) => {
   const data = parseBody(createUserSchema, req.body, res);
   if (!data) return;
 
-  const { name, email, password } = data;
+  const { name, email, password, role } = data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -46,7 +47,7 @@ router.post("/", requireAuth, requireRole("admin"), async (req: Request, res: Re
       id: userId,
       name,
       email,
-      role: Role.agent,
+      role: role === Role.admin ? PrismaRole.admin : PrismaRole.agent,
       emailVerified: false,
       createdAt: now,
       updatedAt: now,
@@ -67,11 +68,11 @@ router.post("/", requireAuth, requireRole("admin"), async (req: Request, res: Re
   res.status(201).json(user);
 });
 
-router.patch("/:id", requireAuth, requireRole("admin"), async (req: Request, res: Response) => {
+router.patch("/:id", requireAuth, requireRole(Role.admin), async (req: Request, res: Response) => {
   const data = parseBody(updateUserSchema, req.body, res);
   if (!data) return;
 
-  const { name, email, password } = data;
+  const { name, email, password, role } = data;
 
   const existing = await prisma.user.findUnique({ where: { id: req.params.id } });
   if (!existing) {
@@ -87,9 +88,10 @@ router.patch("/:id", requireAuth, requireRole("admin"), async (req: Request, res
     }
   }
 
-  const updateData: { name: string; email: string; updatedAt: Date } = {
+  const updateData: { name: string; email: string; role: Role; updatedAt: Date } = {
     name,
     email,
+    role: role === Role.admin ? PrismaRole.admin : PrismaRole.agent,
     updatedAt: new Date(),
   };
 
@@ -108,6 +110,26 @@ router.patch("/:id", requireAuth, requireRole("admin"), async (req: Request, res
   });
 
   res.json(user);
+});
+
+router.delete("/:id", requireAuth, requireRole(Role.admin), async (req: Request, res: Response) => {
+  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  if (user.role === PrismaRole.admin) {
+    res.status(403).json({ error: "Admin users cannot be deleted" });
+    return;
+  }
+
+  await prisma.user.update({
+    where: { id: req.params.id },
+    data: { deletedAt: new Date() },
+  });
+
+  res.status(204).end();
 });
 
 export default router;
