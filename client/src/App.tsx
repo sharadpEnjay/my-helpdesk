@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router";
 import { authClient } from "@/lib/auth-client";
 import { LoginPage } from "@/pages/LoginPage";
 import { HomePage } from "@/pages/HomePage";
+import { TicketsPage } from "@/pages/TicketsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -29,6 +30,15 @@ function App() {
           path="/"
           element={
             <HomePage
+              userName={session?.user?.name ?? ""}
+              role={session?.user?.role ?? ""}
+            />
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <TicketsPage
               userName={session?.user?.name ?? ""}
               role={session?.user?.role ?? ""}
             />

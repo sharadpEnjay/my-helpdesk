@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { Role } from "core/schemas/user";
+import { Role } from "core/constants/user";
 import {
   AlertDialog,
   AlertDialogAction,

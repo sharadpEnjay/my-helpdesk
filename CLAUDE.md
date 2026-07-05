@@ -69,7 +69,7 @@ cd server && bunx prisma studio            # visual database browser
 ### Validation & Forms
 - **Zod v4** (`zod`) — define shared schemas in `core/schemas/`, import in both client and server
 - Use Zod schemas for all request body validation on API endpoints
-- Use the shared `Role` constant from `core/schemas/user` (e.g. `Role.admin`, `Role.agent`) instead of hardcoded string values — on the server, map to Prisma's `Role` enum (`PrismaRole`) only at the database boundary
+- Shared enum constants live in `core/constants/` (e.g. `Role` in `core/constants/user`, `TicketStatus`/`TicketCategory` in `core/constants/ticket`) — use these instead of hardcoded string values. On the server, map to Prisma enums (e.g. `PrismaRole`) only at the database boundary
 - **React Hook Form** + `@hookform/resolvers/zod` for all client-side forms — use `useForm` with `zodResolver`, not manual `useState` validation
 
 ### Key Conventions
@@ -99,6 +99,10 @@ cd server && bunx prisma studio            # visual database browser
 - `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
 - `NODE_ENV=production` — enables secure cookies and auth rate limiting
 
+### Testing Strategy
+- **Prefer component tests** (Vitest + React Testing Library) for all UI rendering, user interactions, states (loading/error/empty), and data display. These are fast, reliable, and cover the majority of frontend behavior.
+- **Reserve E2E tests** (Playwright) for flows that genuinely span the full stack — authentication, navigation between pages, data created via one path (e.g. webhook) appearing in the UI.
+
 ### Component Testing
 - **Vitest** + **React Testing Library** with jsdom environment
 - Config: `client/vite.config.ts` (`test` block), setup: `client/src/test/setup.ts`
@@ -109,8 +113,9 @@ cd server && bunx prisma studio            # visual database browser
 - Run in watch mode: `cd client && bun run test:watch`
 
 ### E2E Testing
-- Always use the **e2e-test-writer** agent (subagent) to write, create, or update Playwright E2E tests — do not write them inline.
+- Use the **e2e-test-writer** agent (subagent) to write, create, or update Playwright E2E tests — do not write them inline.
 - Test files live in `e2e/` with `.spec.ts` extension. The agent has full context on test infrastructure, conventions, and helpers.
+- Only write E2E tests for cross-boundary flows (e.g. webhook → DB → UI, login → protected page). If a test can be written as a component test, it should be.
 
 ### Note on `server/CLAUDE.md`
 The file at `server/CLAUDE.md` is a Bun-generated default. **Ignore its recommendations** about `Bun.serve()`, `bun:sqlite`, `Bun.sql`, and HTML imports — this project uses Express, Prisma with pg, and Vite.

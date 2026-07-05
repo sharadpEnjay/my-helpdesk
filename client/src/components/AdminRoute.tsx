@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router";
-import { Role } from "core/schemas/user";
+import { Role } from "core/constants/user";
 import { authClient } from "@/lib/auth-client";
 
 export function AdminRoute() {

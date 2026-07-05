@@ -1,2 +1,3 @@
 - [Auth test patterns](auth-test-patterns.md) — Better Auth password hash format, pg seeding helper, signInViaApi pattern for test setup
 - [E2E infrastructure](e2e-infrastructure.md) — pg in root devDependencies, test-config.ts ports, page.request shares cookies with browser context
+- [Shared DB test isolation](shared-db-test-isolation.md) — mock empty-state responses, compare relative order not absolute index, since DB is shared across all spec files for the whole run

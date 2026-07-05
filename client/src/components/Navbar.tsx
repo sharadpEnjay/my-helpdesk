@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Role } from "core/schemas/user";
+import { Role } from "core/constants/user";
 import { authClient } from "../lib/auth-client";
 
 interface NavbarProps {
@@ -17,6 +17,9 @@ export function Navbar({ userName, role }: NavbarProps) {
       <div className="flex items-center gap-6">
         <Link to="/" className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent no-underline">
           Helpdesk
+        </Link>
+        <Link to="/tickets" className="text-slate-400 font-medium hover:text-white transition-colors duration-200 no-underline">
+          Tickets
         </Link>
         {role === Role.admin && (
           <Link to="/users" className="text-slate-400 font-medium hover:text-white transition-colors duration-200 no-underline">

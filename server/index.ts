@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { requireAuth } from "./middleware/auth";
 import prisma from "./db";
+import ticketsRouter from "./routes/tickets";
 import usersRouter from "./routes/users";
 import webhooksRouter from "./routes/webhooks";
 import { startSmtpServer } from "./smtp";
@@ -43,11 +44,7 @@ app.get("/api/me", requireAuth, (req: Request, res: Response) => {
   res.json({ user: req.user });
 });
 
-app.get("/api/tickets", requireAuth, async (_req: Request, res: Response) => {
-  const tickets = await prisma.ticket.findMany();
-  res.json(tickets);
-});
-
+app.use("/api/tickets", ticketsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/webhooks", webhooksRouter);
 

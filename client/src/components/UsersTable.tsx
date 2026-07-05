@@ -1,5 +1,5 @@
 import { PencilIcon, Trash2Icon } from "lucide-react";
-import { Role } from "core/schemas/user";
+import { Role } from "core/constants/user";
 import {
   Table,
   TableBody,

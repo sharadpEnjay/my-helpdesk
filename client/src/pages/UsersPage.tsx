@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
-import { Role } from "core/schemas/user";
+import { Role } from "core/constants/user";
 import { Navbar } from "../components/Navbar";
 import { UsersTable } from "../components/UsersTable";
 import { UserFormDialog, type DialogState } from "../components/UserFormDialog";

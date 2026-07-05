@@ -4,7 +4,8 @@ import { hashPassword, generateRandomString } from "better-auth/crypto";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { parseBody } from "../utils/validation";
 import prisma from "../db";
-import { createUserSchema, updateUserSchema, Role } from "core/schemas/user";
+import { createUserSchema, updateUserSchema } from "core/schemas/user";
+import { Role } from "core/constants/user";
 
 const router = Router();
 
