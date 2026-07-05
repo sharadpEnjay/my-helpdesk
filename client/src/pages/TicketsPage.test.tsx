@@ -49,7 +49,7 @@ describe("TicketsPage", () => {
 
     await screen.findByText("Login not working");
     for (const col of ["Subject", "From", "Status", "Category", "Created"]) {
-      expect(screen.getByRole("columnheader", { name: col })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: new RegExp(col) })).toBeInTheDocument();
     }
   });
 
@@ -113,11 +113,13 @@ describe("TicketsPage", () => {
     expect(within(dataRows[1]!).getByText("Billing question")).toBeInTheDocument();
   });
 
-  test("calls /api/tickets endpoint", () => {
+  test("calls /api/tickets endpoint with default sort params", () => {
     mockedAxios.get.mockReturnValue(new Promise(() => {}));
     renderTicketsPage();
 
-    expect(mockedAxios.get).toHaveBeenCalledWith("/api/tickets");
+    expect(mockedAxios.get).toHaveBeenCalledWith("/api/tickets", {
+      params: { sortBy: "createdAt", sortOrder: "desc" },
+    });
   });
 
   test("renders the navbar with user name", () => {

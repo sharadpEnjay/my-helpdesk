@@ -1,18 +1,10 @@
+import { useState, useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
+import type { SortingState } from "@tanstack/react-table";
 import axios from "axios";
-import type { TicketStatus, TicketCategory } from "core/constants/ticket";
 import { Navbar } from "../components/Navbar";
-import { TicketsTable } from "../components/TicketsTable";
-
-interface Ticket {
-  id: number;
-  subject: string;
-  senderName: string;
-  senderEmail: string;
-  status: TicketStatus;
-  category: TicketCategory | null;
-  createdAt: string;
-}
+import { TicketsTable, type Ticket } from "../components/TicketsTable";
+import { TicketFilters, type TicketFilterValues } from "../components/TicketFilters";
 
 interface TicketsPageProps {
   userName: string;
@@ -20,9 +12,30 @@ interface TicketsPageProps {
 }
 
 export function TicketsPage({ userName, role }: TicketsPageProps) {
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
+  const [filters, setFilters] = useState<TicketFilterValues>({
+    status: "",
+    category: "",
+    search: "",
+  });
+
+  const deferredSearch = useDeferredValue(filters.search);
+
   const { data: tickets = [], isPending, error } = useQuery({
-    queryKey: ["tickets"],
-    queryFn: () => axios.get<Ticket[]>("/api/tickets").then((res) => res.data),
+    queryKey: ["tickets", sorting, filters.status, filters.category, deferredSearch],
+    queryFn: () => {
+      const params: Record<string, string> = {};
+      if (sorting.length > 0) {
+        params.sortBy = sorting[0]!.id;
+        params.sortOrder = sorting[0]!.desc ? "desc" : "asc";
+      }
+      if (filters.status) params.status = filters.status;
+      if (filters.category) params.category = filters.category;
+      if (deferredSearch) params.search = deferredSearch;
+      return axios.get<Ticket[]>("/api/tickets", { params }).then((res) => res.data);
+    },
   });
 
   return (
@@ -33,7 +46,15 @@ export function TicketsPage({ userName, role }: TicketsPageProps) {
           <h1 className="text-4xl font-bold">Tickets</h1>
         </div>
 
-        <TicketsTable tickets={tickets} isPending={isPending} error={error} />
+        <TicketFilters filters={filters} onFiltersChange={setFilters} />
+
+        <TicketsTable
+          tickets={tickets}
+          isPending={isPending}
+          error={error}
+          sorting={sorting}
+          onSortingChange={setSorting}
+        />
       </div>
     </div>
   );
