@@ -3,6 +3,8 @@ import { requireAuth } from "../middleware/auth";
 import prisma from "../db";
 import { type Prisma } from "@prisma/client";
 import { TicketStatus, TicketCategory } from "core/constants/ticket";
+import { updateTicketSchema } from "core/schemas/ticket";
+import { parseBody } from "../utils/validation";
 
 const router = Router();
 
@@ -76,6 +78,52 @@ router.get("/:id", requireAuth, async (req: Request, res: Response) => {
   }
 
   res.json(ticket);
+});
+
+router.patch("/:id", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const data = parseBody(updateTicketSchema, req.body, res);
+  if (!data) return;
+
+  if (data.assignedToId !== undefined && data.assignedToId !== null) {
+    const agent = await prisma.user.findUnique({ where: { id: data.assignedToId, deletedAt: null } });
+    if (!agent) {
+      res.status(400).json({ error: "Agent not found" });
+      return;
+    }
+  }
+
+  const updateData: Prisma.TicketUpdateInput = {};
+  if (data.assignedToId !== undefined) {
+    updateData.assignedTo = data.assignedToId
+      ? { connect: { id: data.assignedToId } }
+      : { disconnect: true };
+  }
+  if (data.status !== undefined) {
+    updateData.status = data.status;
+  }
+  if (data.category !== undefined) {
+    updateData.category = data.category;
+  }
+
+  const updated = await prisma.ticket.update({
+    where: { id },
+    data: updateData,
+    include: { assignedTo: { select: { id: true, name: true, email: true } } },
+  });
+
+  res.json(updated);
 });
 
 export default router;

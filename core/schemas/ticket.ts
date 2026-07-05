@@ -19,3 +19,9 @@ export const inboundEmailSchema = z.object({
 });
 
 export type InboundEmailInput = z.infer<typeof inboundEmailSchema>;
+
+export const updateTicketSchema = z.object({
+  assignedToId: z.string().min(1, "Invalid agent ID").nullable().optional(),
+  status: z.enum(["open", "pending", "resolved", "closed"]).optional(),
+  category: z.enum(["general", "billing", "technical", "bug", "feature_request"]).nullable().optional(),
+});
