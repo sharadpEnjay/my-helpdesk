@@ -1,10 +1,17 @@
 import { useState, useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { SortingState } from "@tanstack/react-table";
+import type { SortingState, PaginationState } from "@tanstack/react-table";
 import axios from "axios";
 import { Navbar } from "../components/Navbar";
 import { TicketsTable, type Ticket } from "../components/TicketsTable";
 import { TicketFilters, type TicketFilterValues } from "../components/TicketFilters";
+
+interface TicketsResponse {
+  data: Ticket[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 interface TicketsPageProps {
   userName: string;
@@ -15,6 +22,10 @@ export function TicketsPage({ userName, role }: TicketsPageProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [filters, setFilters] = useState<TicketFilterValues>({
     status: "",
     category: "",
@@ -23,20 +34,27 @@ export function TicketsPage({ userName, role }: TicketsPageProps) {
 
   const deferredSearch = useDeferredValue(filters.search);
 
-  const { data: tickets = [], isPending, error } = useQuery({
-    queryKey: ["tickets", sorting, filters.status, filters.category, deferredSearch],
+  const { data, isPending, error } = useQuery({
+    queryKey: ["tickets", sorting, pagination, filters.status, filters.category, deferredSearch],
     queryFn: () => {
       const params: Record<string, string> = {};
       if (sorting.length > 0) {
         params.sortBy = sorting[0]!.id;
         params.sortOrder = sorting[0]!.desc ? "desc" : "asc";
       }
+      params.page = String(pagination.pageIndex + 1);
+      params.pageSize = String(pagination.pageSize);
       if (filters.status) params.status = filters.status;
       if (filters.category) params.category = filters.category;
       if (deferredSearch) params.search = deferredSearch;
-      return axios.get<Ticket[]>("/api/tickets", { params }).then((res) => res.data);
+      return axios.get<TicketsResponse>("/api/tickets", { params }).then((res) => res.data);
     },
   });
+
+  const handleFiltersChange = (newFilters: TicketFilterValues) => {
+    setFilters(newFilters);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">
@@ -46,14 +64,17 @@ export function TicketsPage({ userName, role }: TicketsPageProps) {
           <h1 className="text-4xl font-bold">Tickets</h1>
         </div>
 
-        <TicketFilters filters={filters} onFiltersChange={setFilters} />
+        <TicketFilters filters={filters} onFiltersChange={handleFiltersChange} />
 
         <TicketsTable
-          tickets={tickets}
+          tickets={data?.data ?? []}
+          total={data?.total ?? 0}
           isPending={isPending}
           error={error}
           sorting={sorting}
           onSortingChange={setSorting}
+          pagination={pagination}
+          onPaginationChange={setPagination}
         />
       </div>
     </div>

@@ -28,6 +28,10 @@ const MOCK_TICKETS = [
   },
 ];
 
+function mockResponse(tickets = MOCK_TICKETS) {
+  return { data: { data: tickets, total: tickets.length, page: 1, pageSize: 10 } };
+}
+
 function renderTicketsPage(props: { userName: string; role?: string } = { userName: "Admin", role: "admin" }) {
   return renderWithProviders(<TicketsPage {...props} />);
 }
@@ -44,7 +48,7 @@ describe("TicketsPage", () => {
   });
 
   test("renders table column headers", async () => {
-    mockedAxios.get.mockResolvedValue({ data: MOCK_TICKETS });
+    mockedAxios.get.mockResolvedValue(mockResponse());
     renderTicketsPage();
 
     await screen.findByText("Login not working");
@@ -61,7 +65,7 @@ describe("TicketsPage", () => {
   });
 
   test("shows empty state when no tickets returned", async () => {
-    mockedAxios.get.mockResolvedValue({ data: [] });
+    mockedAxios.get.mockResolvedValue(mockResponse([]));
     renderTicketsPage();
 
     expect(await screen.findByText("No tickets found")).toBeInTheDocument();
@@ -75,7 +79,7 @@ describe("TicketsPage", () => {
   });
 
   test("renders ticket row with subject, sender, status, category, and date", async () => {
-    mockedAxios.get.mockResolvedValue({ data: MOCK_TICKETS });
+    mockedAxios.get.mockResolvedValue(mockResponse());
     renderTicketsPage();
 
     const row = await screen.findByText("Login not working").then((el) =>
@@ -92,7 +96,7 @@ describe("TicketsPage", () => {
   });
 
   test("renders em dash when category is null", async () => {
-    mockedAxios.get.mockResolvedValue({ data: MOCK_TICKETS });
+    mockedAxios.get.mockResolvedValue(mockResponse());
     renderTicketsPage();
 
     const row = await screen.findByText("Billing question").then((el) =>
@@ -102,7 +106,7 @@ describe("TicketsPage", () => {
   });
 
   test("renders tickets in the order received (newest first)", async () => {
-    mockedAxios.get.mockResolvedValue({ data: MOCK_TICKETS });
+    mockedAxios.get.mockResolvedValue(mockResponse());
     renderTicketsPage();
 
     await screen.findByText("Login not working");
@@ -113,12 +117,12 @@ describe("TicketsPage", () => {
     expect(within(dataRows[1]!).getByText("Billing question")).toBeInTheDocument();
   });
 
-  test("calls /api/tickets endpoint with default sort params", () => {
+  test("calls /api/tickets endpoint with default sort and pagination params", () => {
     mockedAxios.get.mockReturnValue(new Promise(() => {}));
     renderTicketsPage();
 
     expect(mockedAxios.get).toHaveBeenCalledWith("/api/tickets", {
-      params: { sortBy: "createdAt", sortOrder: "desc" },
+      params: { sortBy: "createdAt", sortOrder: "desc", page: "1", pageSize: "10" },
     });
   });
 

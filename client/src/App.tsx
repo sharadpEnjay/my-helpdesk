@@ -4,6 +4,7 @@ import { LoginPage } from "@/pages/LoginPage";
 import { HomePage } from "@/pages/HomePage";
 import { TicketsPage } from "@/pages/TicketsPage";
 import { UsersPage } from "@/pages/UsersPage";
+import { TicketDetailPage } from "@/pages/TicketDetailPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import "./App.css";
@@ -39,6 +40,15 @@ function App() {
           path="/tickets"
           element={
             <TicketsPage
+              userName={session?.user?.name ?? ""}
+              role={session?.user?.role ?? ""}
+            />
+          }
+        />
+        <Route
+          path="/tickets/:id"
+          element={
+            <TicketDetailPage
               userName={session?.user?.name ?? ""}
               role={session?.user?.role ?? ""}
             />
