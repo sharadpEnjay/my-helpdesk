@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import DOMPurify from "dompurify";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +13,7 @@ import { createReplySchema, type CreateReplyInput } from "core/schemas/reply";
 interface Reply {
   id: number;
   body: string;
+  bodyHtml: string | null;
   senderType: SenderTypeValue;
   user: { id: string; name: string; email: string } | null;
   createdAt: string;
@@ -83,7 +85,16 @@ export function ReplyThread({ ticket }: ReplyThreadProps) {
                   {new Date(reply.createdAt).toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-slate-200 whitespace-pre-wrap">{reply.body}</p>
+              {reply.bodyHtml ? (
+                <div
+                  className="prose prose-invert prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(reply.bodyHtml),
+                  }}
+                />
+              ) : (
+                <p className="text-sm text-slate-200 whitespace-pre-wrap">{reply.body}</p>
+              )}
             </div>
           ))}
         </div>

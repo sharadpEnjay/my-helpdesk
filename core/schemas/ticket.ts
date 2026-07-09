@@ -14,9 +14,9 @@ export function stripSubjectPrefix(subject: string): string {
 export const inboundEmailSchema = z.object({
   from: z.string().trim().pipe(z.email("Invalid sender email")),
   fromName: z.string().trim().optional(),
-  subject: z.string().trim().min(1, "Subject is required").transform(stripSubjectPrefix),
-  body: z.string().min(1, "Body is required"),
-  bodyHtml: z.string().optional(),
+  subject: z.string().trim().min(1, "Subject is required").max(255, "Subject must be 255 characters or less").transform(stripSubjectPrefix),
+  body: z.string().min(1, "Body is required").max(50000, "Body must be 50,000 characters or less"),
+  bodyHtml: z.string().max(100000).optional(),
 });
 
 export type InboundEmailInput = z.infer<typeof inboundEmailSchema>;

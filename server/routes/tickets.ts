@@ -168,6 +168,7 @@ router.post("/:id/replies", requireAuth, async (req: Request, res: Response) => 
   const reply = await prisma.reply.create({
     data: {
       body: data.body,
+      bodyHtml: data.bodyHtml ?? null,
       senderType: data.senderType,
       ticketId: id,
       userId: data.senderType === "agent" ? req.user!.id : null,

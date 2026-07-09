@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { type Ticket } from "core/schemas/ticket";
 
 interface TicketDetailProps {
@@ -27,7 +28,9 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
         {ticket.bodyHtml ? (
           <div
             className="prose prose-invert prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: ticket.bodyHtml }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(ticket.bodyHtml),
+            }}
           />
         ) : (
           <p className="text-slate-200 whitespace-pre-wrap">{ticket.body}</p>
