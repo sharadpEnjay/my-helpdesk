@@ -1,2 +1,4 @@
 - [E2E infra layout](project-e2e-setup.md) — ports, config files, seeded admin/agent test users, existing spec files
 - [API/webhook testing pattern](project-e2e-api-testing.md) — hit test server directly for non-UI endpoints, wire test secrets via playwright.config.ts webServer env, verify Zod error strings by running safeParse directly
+- [Select components lack labels](project-e2e-select-labels.md) — shadcn/Radix Selects often miss aria-label; add one to the trigger rather than using fragile structural locators
+- [Ticket lifecycle & detail page structure](project-e2e-ticket-lifecycle.md) — test DB has no pre-seeded tickets (webhook-only), ticket detail page component/API map, known pre-existing webhooks.spec.ts bug

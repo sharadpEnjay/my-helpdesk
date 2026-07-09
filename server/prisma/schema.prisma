@@ -29,6 +29,11 @@ enum TicketCategory {
   feature_request
 }
 
+enum SenderType {
+  agent
+  customer
+}
+
 model Ticket {
   id           Int             @id @default(autoincrement())
   subject      String
@@ -40,10 +45,25 @@ model Ticket {
   senderEmail  String
   assignedToId String?
   assignedTo   user?           @relation(fields: [assignedToId], references: [id])
+  replies      Reply[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
   @@map("ticket")
+}
+
+model Reply {
+  id         Int        @id @default(autoincrement())
+  body       String
+  senderType SenderType
+  ticketId   Int
+  ticket     Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       user?      @relation(fields: [userId], references: [id])
+  createdAt  DateTime   @default(now())
+
+  @@index([ticketId])
+  @@map("reply")
 }
 
 model user {
@@ -59,6 +79,7 @@ model user {
   sessions      session[]
   accounts      account[]
   tickets       Ticket[]
+  replies       Reply[]
 }
 
 model session {

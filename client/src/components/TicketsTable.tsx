@@ -19,18 +19,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Link } from "react-router";
-import type { TicketStatus, TicketCategory } from "core/constants/ticket";
+import { type Ticket } from "core/schemas/ticket";
 import { statusStyles } from "@/lib/ticket-styles";
 
-export interface Ticket {
-  id: number;
-  subject: string;
-  senderName: string;
-  senderEmail: string;
-  status: TicketStatus;
-  category: TicketCategory | null;
-  createdAt: string;
-}
+export type { Ticket };
 
 interface TicketsTableProps {
   tickets: Ticket[];

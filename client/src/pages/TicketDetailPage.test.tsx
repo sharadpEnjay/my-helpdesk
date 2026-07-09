@@ -44,6 +44,9 @@ const MOCK_AGENTS = [
 
 function mockAxiosGet(ticket = MOCK_TICKET, agents = MOCK_AGENTS) {
   mockedAxios.get.mockImplementation((url: string) => {
+    if (url.match(/\/api\/tickets\/\d+\/replies/)) {
+      return Promise.resolve({ data: [] });
+    }
     if (url.match(/\/api\/tickets\/\d+/)) {
       return Promise.resolve({ data: ticket });
     }
@@ -197,7 +200,9 @@ describe("TicketDetailPage", () => {
 
     await screen.findByText("Login not working");
     const trigger = getSelectTriggerByLabel("Assigned to");
-    expect(trigger.textContent).toContain("Alice Agent");
+    await waitFor(() => {
+      expect(trigger.textContent).toContain("Alice Agent");
+    });
   });
 
   test("calls PATCH with agent id when selecting an agent", async () => {

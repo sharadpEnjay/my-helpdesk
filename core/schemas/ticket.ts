@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TicketStatus, TicketCategory } from "core/constants/ticket";
 
 const subjectPrefixPattern = /^(re|fwd?|aw|wg)\s*:\s*/i;
 
@@ -20,8 +21,22 @@ export const inboundEmailSchema = z.object({
 
 export type InboundEmailInput = z.infer<typeof inboundEmailSchema>;
 
+export interface Ticket {
+  id: number;
+  subject: string;
+  body: string;
+  bodyHtml: string | null;
+  status: TicketStatus;
+  category: TicketCategory | null;
+  senderName: string;
+  senderEmail: string;
+  assignedTo: { id: string; name: string; email: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const updateTicketSchema = z.object({
   assignedToId: z.string().min(1, "Invalid agent ID").nullable().optional(),
-  status: z.enum(["open", "pending", "resolved", "closed"]).optional(),
-  category: z.enum(["general", "billing", "technical", "bug", "feature_request"]).nullable().optional(),
+  status: z.enum(Object.values(TicketStatus) as [TicketStatus, ...TicketStatus[]]).optional(),
+  category: z.enum(Object.values(TicketCategory) as [TicketCategory, ...TicketCategory[]]).nullable().optional(),
 });

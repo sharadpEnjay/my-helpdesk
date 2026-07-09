@@ -46,7 +46,7 @@ cd server && bunx prisma studio            # visual database browser
 - **Express 5** on Bun runtime, single entry point: `server/index.ts`
 - **Prisma ORM** with PostgreSQL via `@prisma/adapter-pg` (uses `pg` connection pool, not Bun.sql)
 - Database client singleton: `server/db.ts`
-- Schema: `server/prisma/schema.prisma` — models: `Ticket`, `user`, `session`, `account`, `verification`
+- Schema: `server/prisma/schema.prisma` — models: `Ticket`, `Reply`, `user`, `session`, `account`, `verification`
 - Prisma config: `server/prisma.config.ts` (reads `DATABASE_URL` from env)
 - **Better Auth** for authentication: `server/auth.ts` — email/password, database sessions, Prisma adapter
 - Auth middleware: `server/middleware/auth.ts` — `requireAuth` attaches `req.user` and `req.session`
@@ -69,7 +69,7 @@ cd server && bunx prisma studio            # visual database browser
 ### Validation & Forms
 - **Zod v4** (`zod`) — define shared schemas in `core/schemas/`, import in both client and server
 - Use Zod schemas for all request body validation on API endpoints
-- Shared enum constants live in `core/constants/` (e.g. `Role` in `core/constants/user`, `TicketStatus`/`TicketCategory` in `core/constants/ticket`) — use these instead of hardcoded string values. On the server, map to Prisma enums (e.g. `PrismaRole`) only at the database boundary
+- Shared enum constants live in `core/constants/` (e.g. `Role` in `core/constants/user`, `TicketStatus`/`TicketCategory`/`SenderType` in `core/constants/ticket`) — use these instead of hardcoded string values. In Zod schemas, derive enums from constants via `z.enum(Object.values(Const) as [T, ...T[]])` instead of hardcoding strings. On the server, map to Prisma enums (e.g. `PrismaRole`) only at the database boundary
 - **React Hook Form** + `@hookform/resolvers/zod` for all client-side forms — use `useForm` with `zodResolver`, not manual `useState` validation
 
 ### Key Conventions
@@ -101,7 +101,7 @@ cd server && bunx prisma studio            # visual database browser
 
 ### Testing Strategy
 - **Prefer component tests** (Vitest + React Testing Library) for all UI rendering, user interactions, states (loading/error/empty), and data display. These are fast, reliable, and cover the majority of frontend behavior.
-- **Reserve E2E tests** (Playwright) for flows that genuinely span the full stack — authentication, navigation between pages, data created via one path (e.g. webhook) appearing in the UI.
+- **Reserve E2E tests** (Playwright) for flows that genuinely span the full stack — data persisted server-side and surviving a reload, authentication, cross-page navigation that depends on server state. Do not duplicate in E2E what is already covered by component tests (e.g. rendering details, link hrefs, form validation, loading/error states). An E2E test must justify itself by exercising a real server round-trip that a unit test cannot.
 
 ### Component Testing
 - **Vitest** + **React Testing Library** with jsdom environment

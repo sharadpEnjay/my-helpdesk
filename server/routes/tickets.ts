@@ -4,6 +4,7 @@ import prisma from "../db";
 import { type Prisma } from "@prisma/client";
 import { TicketStatus, TicketCategory } from "core/constants/ticket";
 import { updateTicketSchema } from "core/schemas/ticket";
+import { createReplySchema } from "core/schemas/reply";
 import { parseBody } from "../utils/validation";
 
 const router = Router();
@@ -124,6 +125,57 @@ router.patch("/:id", requireAuth, async (req: Request, res: Response) => {
   });
 
   res.json(updated);
+});
+
+router.get("/:id/replies", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const replies = await prisma.reply.findMany({
+    where: { ticketId: id },
+    include: { user: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+
+  res.json(replies);
+});
+
+router.post("/:id/replies", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const data = parseBody(createReplySchema, req.body, res);
+  if (!data) return;
+
+  const reply = await prisma.reply.create({
+    data: {
+      body: data.body,
+      senderType: data.senderType,
+      ticketId: id,
+      userId: data.senderType === "agent" ? req.user!.id : null,
+    },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
+
+  res.status(201).json(reply);
 });
 
 export default router;
