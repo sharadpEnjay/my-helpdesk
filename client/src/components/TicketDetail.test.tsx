@@ -1,8 +1,13 @@
-import { screen } from "@testing-library/react";
-import { describe, test, expect } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { vi, describe, test, expect, beforeEach } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { TicketDetail } from "./TicketDetail";
+import axios from "axios";
 import type { Ticket } from "core/schemas/ticket";
+
+vi.mock("axios");
+const mockedAxios = vi.mocked(axios);
 
 function makeTicket(overrides: Partial<Ticket> = {}): Ticket {
   return {
@@ -22,6 +27,10 @@ function makeTicket(overrides: Partial<Ticket> = {}): Ticket {
 }
 
 describe("TicketDetail", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   test("renders subject as heading", () => {
     renderWithProviders(<TicketDetail ticket={makeTicket()} />);
 
@@ -63,5 +72,81 @@ describe("TicketDetail", () => {
 
     const el = screen.getByText(/Line one/);
     expect(el).toHaveClass("whitespace-pre-wrap");
+  });
+
+  test("renders Summarize button", () => {
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    expect(screen.getByRole("button", { name: "Summarize" })).toBeInTheDocument();
+  });
+
+  test("does not show summary before clicking Summarize", () => {
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    expect(screen.queryByText("Summary")).not.toBeInTheDocument();
+  });
+
+  test("calls the correct ticket-specific summarize endpoint", async () => {
+    const user = userEvent.setup();
+    mockedAxios.post.mockResolvedValue({ data: { summary: "A brief summary." } });
+    renderWithProviders(<TicketDetail ticket={makeTicket({ id: 99 })} />);
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalledWith("/api/tickets/99/summarize");
+    });
+  });
+
+  test("displays the summary after clicking Summarize", async () => {
+    const user = userEvent.setup();
+    mockedAxios.post.mockResolvedValue({
+      data: { summary: "Customer reported a login issue after the last update." },
+    });
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+
+    expect(
+      await screen.findByText("Customer reported a login issue after the last update."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Summary")).toBeInTheDocument();
+  });
+
+  test("shows Summarizing... while request is in flight", async () => {
+    const user = userEvent.setup();
+    mockedAxios.post.mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+
+    expect(await screen.findByRole("button", { name: "Summarizing..." })).toBeDisabled();
+  });
+
+  test("shows error message when summarize fails", async () => {
+    const user = userEvent.setup();
+    mockedAxios.post.mockRejectedValue(new Error("Network error"));
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+
+    expect(
+      await screen.findByText("Failed to generate summary. Please try again."),
+    ).toBeInTheDocument();
+  });
+
+  test("re-generates summary on subsequent clicks", async () => {
+    const user = userEvent.setup();
+    mockedAxios.post
+      .mockResolvedValueOnce({ data: { summary: "First summary." } })
+      .mockResolvedValueOnce({ data: { summary: "Updated summary." } });
+    renderWithProviders(<TicketDetail ticket={makeTicket()} />);
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+    expect(await screen.findByText("First summary.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Summarize" }));
+    expect(await screen.findByText("Updated summary.")).toBeInTheDocument();
+    expect(screen.queryByText("First summary.")).not.toBeInTheDocument();
   });
 });

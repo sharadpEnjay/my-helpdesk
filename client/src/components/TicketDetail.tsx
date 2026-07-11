@@ -1,4 +1,8 @@
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import DOMPurify from "dompurify";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { type Ticket } from "core/schemas/ticket";
 
 interface TicketDetailProps {
@@ -6,6 +10,13 @@ interface TicketDetailProps {
 }
 
 export function TicketDetail({ ticket }: TicketDetailProps) {
+  const summarizeMutation = useMutation({
+    mutationFn: () =>
+      axios
+        .post<{ summary: string }>(`/api/tickets/${ticket.id}/summarize`)
+        .then((res) => res.data),
+  });
+
   return (
     <>
       <div>
@@ -36,6 +47,30 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
           <p className="text-slate-200 whitespace-pre-wrap">{ticket.body}</p>
         )}
       </div>
+
+      {summarizeMutation.data && (
+        <div className="rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] backdrop-blur-xl p-6">
+          <h2 className="text-sm font-medium text-purple-300 mb-3">Summary</h2>
+          <p className="text-sm text-slate-200 whitespace-pre-wrap">
+            {summarizeMutation.data.summary}
+          </p>
+        </div>
+      )}
+
+      {summarizeMutation.isError && (
+        <p className="text-xs text-red-400">Failed to generate summary. Please try again.</p>
+      )}
+
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={summarizeMutation.isPending}
+        onClick={() => summarizeMutation.mutate()}
+      >
+        <Sparkles className="h-4 w-4 mr-1" />
+        {summarizeMutation.isPending ? "Summarizing..." : "Summarize"}
+      </Button>
     </>
   );
 }

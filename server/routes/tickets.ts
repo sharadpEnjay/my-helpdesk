@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { generateText } from "ai";
-import { createGroq } from "@ai-sdk/groq";
 import { requireAuth } from "../middleware/auth";
+import { groq } from "../ai";
 import prisma from "../db";
 import { type Prisma } from "@prisma/client";
 import { TicketStatus, TicketCategory } from "core/constants/ticket";
@@ -9,10 +9,6 @@ import { updateTicketSchema } from "core/schemas/ticket";
 import { createReplySchema } from "core/schemas/reply";
 import { polishReplySchema } from "core/schemas/ai";
 import { parseBody } from "../utils/validation";
-
-const groq = createGroq({
-  apiKey: process.env.GROK_API_KEY,
-});
 
 const router = Router();
 
@@ -216,6 +212,46 @@ ${data.draft}`,
   });
 
   res.json({ polished: text });
+});
+
+router.post("/:id/summarize", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const replies = await prisma.reply.findMany({
+    where: { ticketId: id },
+    include: { user: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const conversation = replies
+    .map((r) => {
+      const sender = r.senderType === "agent" ? (r.user?.name ?? "Agent") : ticket.senderName;
+      return `${sender}: ${r.body}`;
+    })
+    .join("\n");
+
+  const { text } = await generateText({
+    model: groq("llama-3.3-70b-versatile"),
+    system: `You are a helpful customer support assistant. Summarize the ticket and its conversation history in a concise paragraph. Highlight the customer's issue, any actions taken, and the current status. Return only the summary, nothing else.`,
+    prompt: `Ticket subject: ${ticket.subject}
+Ticket message: ${ticket.body}
+Customer: ${ticket.senderName}
+
+Conversation history:
+${conversation || "(no replies yet)"}`,
+  });
+
+  res.json({ summary: text });
 });
 
 export default router;
