@@ -1,11 +1,18 @@
 import { Router, type Request, type Response } from "express";
+import { generateText } from "ai";
+import { createGroq } from "@ai-sdk/groq";
 import { requireAuth } from "../middleware/auth";
 import prisma from "../db";
 import { type Prisma } from "@prisma/client";
 import { TicketStatus, TicketCategory } from "core/constants/ticket";
 import { updateTicketSchema } from "core/schemas/ticket";
 import { createReplySchema } from "core/schemas/reply";
+import { polishReplySchema } from "core/schemas/ai";
 import { parseBody } from "../utils/validation";
+
+const groq = createGroq({
+  apiKey: process.env.GROK_API_KEY,
+});
 
 const router = Router();
 
@@ -177,6 +184,38 @@ router.post("/:id/replies", requireAuth, async (req: Request, res: Response) => 
   });
 
   res.status(201).json(reply);
+});
+
+router.post("/:id/polish-reply", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    res.status(400).json({ error: "Invalid ticket ID" });
+    return;
+  }
+
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  if (!ticket) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  const data = parseBody(polishReplySchema, req.body, res);
+  if (!data) return;
+
+  const { text } = await generateText({
+    model: groq("llama-3.3-70b-versatile"),
+    system: `You are a helpful customer support writing assistant. Improve the agent's draft reply to be more professional, clear, and empathetic. Keep the same intent and meaning. Address the customer by their name at the start. Always end the reply with a sign-off using the agent's name. Return only the improved text, nothing else.`,
+    prompt: `Ticket subject: ${ticket.subject}
+Ticket message: ${ticket.body}
+
+Customer's name: ${ticket.senderName.split(" ")[0]}
+Agent's name: ${req.user!.name.split(" ")[0]}
+
+Agent's draft reply to improve:
+${data.draft}`,
+  });
+
+  res.json({ polished: text });
 });
 
 export default router;

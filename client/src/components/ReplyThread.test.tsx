@@ -89,16 +89,12 @@ describe("ReplyThread", () => {
     expect(screen.getByText("Thanks for the help!")).toBeInTheDocument();
   });
 
-  test("shows validation error when submitting empty reply", async () => {
-    const user = userEvent.setup();
+  test("Send Reply button is disabled when draft is empty", async () => {
     mockedAxios.get.mockResolvedValue({ data: [] });
     renderWithProviders(<ReplyThread ticket={makeTicket()} />);
 
     await screen.findByPlaceholderText("Type your reply...");
-    await user.click(screen.getByRole("button", { name: "Send Reply" }));
-
-    expect(await screen.findByText("Reply cannot be empty")).toBeInTheDocument();
-    expect(mockedAxios.post).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Send Reply" })).toBeDisabled();
   });
 
   test("submits reply with correct payload", async () => {
@@ -143,5 +139,59 @@ describe("ReplyThread", () => {
     await user.click(screen.getByRole("button", { name: "Send Reply" }));
 
     expect(await screen.findByText("Failed to send reply. Please try again.")).toBeInTheDocument();
+  });
+
+  test("Polish button is disabled while the draft is empty", async () => {
+    mockedAxios.get.mockResolvedValue({ data: [] });
+    renderWithProviders(<ReplyThread ticket={makeTicket()} />);
+
+    await screen.findByPlaceholderText("Type your reply...");
+    expect(screen.getByRole("button", { name: "Polish" })).toBeDisabled();
+  });
+
+  test("polishes the draft and replaces the textarea content", async () => {
+    const user = userEvent.setup();
+    mockedAxios.get.mockResolvedValue({ data: [] });
+    mockedAxios.post.mockResolvedValue({ data: { polished: "A polished, professional reply." } });
+    renderWithProviders(<ReplyThread ticket={makeTicket()} />);
+
+    const textarea = await screen.findByPlaceholderText("Type your reply...");
+    await user.type(textarea, "fix ur thing");
+    await user.click(screen.getByRole("button", { name: "Polish" }));
+
+    await waitFor(() => {
+      expect(mockedAxios.post).toHaveBeenCalledWith("/api/tickets/1/polish-reply", {
+        draft: "fix ur thing",
+      });
+    });
+    expect(textarea).toHaveValue("A polished, professional reply.");
+  });
+
+  test("shows Polishing... while the polish request is in flight", async () => {
+    const user = userEvent.setup();
+    mockedAxios.get.mockResolvedValue({ data: [] });
+    mockedAxios.post.mockReturnValue(new Promise(() => {}));
+    renderWithProviders(<ReplyThread ticket={makeTicket()} />);
+
+    const textarea = await screen.findByPlaceholderText("Type your reply...");
+    await user.type(textarea, "some draft");
+    await user.click(screen.getByRole("button", { name: "Polish" }));
+
+    expect(await screen.findByRole("button", { name: "Polishing..." })).toBeDisabled();
+  });
+
+  test("shows error message when polishing fails", async () => {
+    const user = userEvent.setup();
+    mockedAxios.get.mockResolvedValue({ data: [] });
+    mockedAxios.post.mockRejectedValue(new Error("Network error"));
+    renderWithProviders(<ReplyThread ticket={makeTicket()} />);
+
+    const textarea = await screen.findByPlaceholderText("Type your reply...");
+    await user.type(textarea, "some draft");
+    await user.click(screen.getByRole("button", { name: "Polish" }));
+
+    expect(
+      await screen.findByText("Failed to polish reply. Please try again."),
+    ).toBeInTheDocument();
   });
 });

@@ -98,6 +98,7 @@ cd server && bunx prisma studio            # visual database browser
 - `ALLOWED_ORIGINS` — comma-separated CORS origins (defaults to `http://localhost:5173`)
 - `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
 - `NODE_ENV=production` — enables secure cookies and auth rate limiting
+- `GROK_API_KEY` — Groq API key for the AI reply-polish endpoint (`POST /api/tickets/:id/polish-reply`, llama-3.3-70b via Vercel AI SDK)
 
 ### Testing Strategy
 - **Prefer component tests** (Vitest + React Testing Library) for all UI rendering, user interactions, states (loading/error/empty), and data display. These are fast, reliable, and cover the majority of frontend behavior.
