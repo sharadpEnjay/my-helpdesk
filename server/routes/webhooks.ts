@@ -4,6 +4,7 @@ import { classifyTicket } from "../utils/classify-ticket";
 import { autoResolveTicket } from "../utils/auto-resolve-ticket";
 import prisma from "../db";
 import { inboundEmailSchema } from "core/schemas/ticket";
+import { AI_AGENT_ID } from "core/constants/ai-agent";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.post("/inbound-email", async (req: Request, res: Response) => {
       bodyHtml: data.bodyHtml ?? null,
       senderEmail: data.from,
       senderName: data.fromName ?? data.from,
+      assignedToId: AI_AGENT_ID,
     },
   });
 

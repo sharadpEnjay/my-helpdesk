@@ -1,73 +1,183 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 import { Navbar } from "../components/Navbar";
-import { HealthCheck } from "../components/HealthCheck";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface HomePageProps {
   userName: string;
   role?: string;
 }
 
-export function HomePage({ userName, role }: HomePageProps) {
-  const [count, setCount] = useState(0);
+interface DashboardStats {
+  totalTickets: number;
+  openTickets: number;
+  aiResolvedCount: number;
+  aiResolvedPercent: number;
+  avgResolutionTimeMs: number;
+}
 
-  const { data: message = "Connecting to server..." } = useQuery({
-    queryKey: ["hello"],
-    queryFn: () => axios.get("/api/hello").then((res) => res.data.message as string),
+interface TicketsPerDay {
+  date: string;
+  count: number;
+}
+
+function formatDuration(ms: number): string {
+  if (ms === 0) return "—";
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function StatCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-4 w-32" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-9 w-20" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export function HomePage({ userName, role }: HomePageProps) {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () =>
+      axios
+        .get<DashboardStats>("/api/dashboard/stats")
+        .then((res) => res.data),
   });
+
+  const { data: ticketsPerDay, isLoading: isChartLoading } = useQuery({
+    queryKey: ["tickets-per-day"],
+    queryFn: () =>
+      axios
+        .get<TicketsPerDay[]>("/api/dashboard/tickets-per-day")
+        .then((res) => res.data),
+  });
+
+  const cards = [
+    {
+      title: "Total Tickets",
+      value: stats?.totalTickets ?? 0,
+      color: "text-blue-400",
+    },
+    {
+      title: "Open Tickets",
+      value: stats?.openTickets ?? 0,
+      color: "text-amber-400",
+    },
+    {
+      title: "Resolved by AI",
+      value: stats?.aiResolvedCount ?? 0,
+      color: "text-emerald-400",
+    },
+    {
+      title: "AI Resolution Rate",
+      value: `${stats?.aiResolvedPercent ?? 0}%`,
+      color: "text-purple-400",
+    },
+    {
+      title: "Avg. Resolution Time",
+      value: formatDuration(stats?.avgResolutionTimeMs ?? 0),
+      color: "text-cyan-400",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">
       <Navbar userName={userName} role={role} />
-      <div className="flex flex-col gap-8 px-8 pb-8 text-center max-w-5xl mx-auto">
-        <header className="p-8 flex flex-col items-center gap-4 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl">
-          <h1 className="m-0 text-5xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
-            Fullstack Bun + Express + React
-          </h1>
-          <div className="flex items-center gap-3 px-4 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-500 text-sm font-semibold">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981] animate-[pulse-dot_2s_infinite]"></span>
-            {message}
-          </div>
-        </header>
+      <div className="px-8 pb-8 max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <StatCardSkeleton key={i} />
+              ))
+            : cards.map((card) => (
+                <Card key={card.title}>
+                  <CardHeader>
+                    <CardTitle className="text-muted-foreground text-sm font-medium">
+                      {card.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className={`text-3xl font-bold ${card.color}`}>
+                      {card.value}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+        </div>
 
-        <main className="flex flex-col gap-8">
-          <div className="p-12 text-left max-w-3xl mx-auto bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-300 hover:bg-white/5 hover:border-white/20 hover:-translate-y-1">
-            <h2 className="mt-0 text-xl text-white mb-2">Interactive Counter</h2>
-            <p className="text-slate-400 text-lg mb-8">
-              Experience the speed of Bun with Hot Module Replacement (HMR).
-            </p>
-            <div className="flex items-center gap-8">
-              <span className="text-6xl font-extrabold font-mono">{count}</span>
-              <button
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-none py-4 px-10 rounded-xl text-lg font-semibold cursor-pointer shadow-lg shadow-blue-600/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-blue-600/40"
-                onClick={() => setCount((c) => c + 1)}
-              >
-                Increment
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
-            <HealthCheck />
-            <div className="p-8 text-left bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-300 hover:bg-white/5 hover:border-white/20 hover:-translate-y-1">
-              <h3 className="mt-0 text-blue-400">Backend</h3>
-              <p className="text-slate-400 mb-0">Express server running on Bun with TypeScript.</p>
-            </div>
-            <div className="p-8 text-left bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-300 hover:bg-white/5 hover:border-white/20 hover:-translate-y-1">
-              <h3 className="mt-0 text-blue-400">Frontend</h3>
-              <p className="text-slate-400 mb-0">React + Vite with TypeScript and modern aesthetics.</p>
-            </div>
-            <div className="p-8 text-left bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-300 hover:bg-white/5 hover:border-white/20 hover:-translate-y-1">
-              <h3 className="mt-0 text-blue-400">Runtime</h3>
-              <p className="text-slate-400 mb-0">Bun: The all-in-one JavaScript toolkit.</p>
-            </div>
-          </div>
-        </main>
-
-        <footer className="mt-8 text-slate-500 text-sm">
-          <p>Built with Bun, Express, and React</p>
-        </footer>
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Tickets per Day (Last 30 Days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isChartLoading ? (
+              <Skeleton className="h-72 w-full" />
+            ) : (
+              <ResponsiveContainer width="100%" height={288}>
+                <BarChart data={ticketsPerDay}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    tickFormatter={(v: string) => {
+                      const d = new Date(v + "T00:00:00");
+                      return `${d.getMonth() + 1}/${d.getDate()}`;
+                    }}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      border: "1px solid #334155",
+                      borderRadius: "8px",
+                      color: "#f1f5f9",
+                    }}
+                    labelFormatter={(v: string) => {
+                      const d = new Date(v + "T00:00:00");
+                      return d.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      });
+                    }}
+                  />
+                  <Bar dataKey="count" name="Tickets" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

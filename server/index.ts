@@ -8,6 +8,7 @@ import prisma from "./db";
 import ticketsRouter from "./routes/tickets";
 import usersRouter from "./routes/users";
 import webhooksRouter from "./routes/webhooks";
+import dashboardRouter from "./routes/dashboard";
 import { startSmtpServer } from "./smtp";
 import boss from "./queue";
 import { startClassifyWorker } from "./workers/classify-ticket";
@@ -50,6 +51,7 @@ app.get("/api/me", requireAuth, (req: Request, res: Response) => {
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/webhooks", webhooksRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);

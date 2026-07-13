@@ -58,7 +58,7 @@ Message: ${body}`,
       if (reply === "NO_MATCH") {
         await prisma.ticket.update({
           where: { id: ticketId },
-          data: { status: "open" },
+          data: { status: "open", assignedToId: null },
         });
         return;
       }
@@ -79,7 +79,7 @@ Message: ${body}`,
     } catch (err) {
       await prisma.ticket.update({
         where: { id: ticketId },
-        data: { status: "open" },
+        data: { status: "open", assignedToId: null },
       });
       throw err;
     }
