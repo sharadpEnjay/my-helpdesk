@@ -58,11 +58,13 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
         disabled={updateMutation.isPending}
         triggerClassName={statusStyles[ticket.status]}
       >
-        {Object.values(TicketStatus).map((s) => (
-          <SelectItem key={s} value={s}>
-            <span className="capitalize">{s}</span>
-          </SelectItem>
-        ))}
+        {Object.values(TicketStatus)
+          .filter((s) => s !== "new" && s !== "processing")
+          .map((s) => (
+            <SelectItem key={s} value={s}>
+              <span className="capitalize">{s}</span>
+            </SelectItem>
+          ))}
       </FieldSelect>
       <FieldSelect
         label="Category"

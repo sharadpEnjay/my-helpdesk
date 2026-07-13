@@ -65,6 +65,7 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
         type="button"
         size="sm"
         variant="outline"
+        className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
         disabled={summarizeMutation.isPending}
         onClick={() => summarizeMutation.mutate()}
       >

@@ -2,6 +2,7 @@ import { SMTPServer } from "smtp-server";
 import { simpleParser } from "mailparser";
 import { stripSubjectPrefix } from "core/schemas/ticket";
 import { classifyTicket } from "./utils/classify-ticket";
+import { autoResolveTicket } from "./utils/auto-resolve-ticket";
 import prisma from "./db";
 
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 2525;
@@ -34,6 +35,7 @@ const server = new SMTPServer({
         });
 
         classifyTicket(ticket.id, ticket.subject, ticket.body);
+        autoResolveTicket(ticket.id, ticket.subject, ticket.body, ticket.senderName);
         console.log(`Ticket #${ticket.id} created from email: "${subject}" <${senderEmail}>`);
       } catch (err) {
         console.error("Failed to process inbound email:", err);

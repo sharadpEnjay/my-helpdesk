@@ -132,13 +132,19 @@ export function ReplyThread({ ticket }: ReplyThreadProps) {
             type="button"
             size="sm"
             variant="outline"
+            className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
             disabled={polishMutation.isPending || !form.watch("body")?.trim()}
             onClick={() => polishMutation.mutate(form.getValues("body"))}
           >
             <Sparkles className="h-4 w-4 mr-1" />
             {polishMutation.isPending ? "Polishing..." : "Polish"}
           </Button>
-          <Button type="submit" size="sm" disabled={mutation.isPending || !form.watch("body")?.trim()}>
+          <Button
+            type="submit"
+            size="sm"
+            className="bg-purple-600 text-white hover:bg-purple-500"
+            disabled={mutation.isPending || !form.watch("body")?.trim()}
+          >
             <Send className="h-4 w-4 mr-1" />
             {mutation.isPending ? "Sending..." : "Send Reply"}
           </Button>

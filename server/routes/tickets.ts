@@ -31,7 +31,7 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
     ? { [sortField]: sortOrder }
     : { createdAt: "desc" as const };
 
-  const where: Prisma.TicketWhereInput = {};
+  const where: Prisma.TicketWhereInput = { status: { notIn: ["new", "processing"] } };
 
   const status = String(req.query.status ?? "");
   if (status && validStatuses.has(status)) {

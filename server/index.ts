@@ -11,6 +11,7 @@ import webhooksRouter from "./routes/webhooks";
 import { startSmtpServer } from "./smtp";
 import boss from "./queue";
 import { startClassifyWorker } from "./workers/classify-ticket";
+import { startAutoResolveWorker } from "./workers/auto-resolve-ticket";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -59,5 +60,6 @@ app.listen(port, async () => {
   console.log(`Server running at http://localhost:${port}`);
   await boss.start();
   await startClassifyWorker();
+  await startAutoResolveWorker();
   startSmtpServer();
 });

@@ -14,10 +14,12 @@ interface TicketFiltersProps {
   onFiltersChange: (filters: TicketFilterValues) => void;
 }
 
-const statusOptions = Object.values(TicketStatus).map((s) => ({
-  value: s,
-  label: s.charAt(0).toUpperCase() + s.slice(1),
-}));
+const statusOptions = Object.values(TicketStatus)
+  .filter((s) => s !== "new" && s !== "processing")
+  .map((s) => ({
+    value: s,
+    label: s.charAt(0).toUpperCase() + s.slice(1),
+  }));
 
 const categoryLabels: Record<string, string> = {
   general: "General",

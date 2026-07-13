@@ -1,4 +1,6 @@
 export const TicketStatus = {
+  new: "new",
+  processing: "processing",
   open: "open",
   pending: "pending",
   resolved: "resolved",

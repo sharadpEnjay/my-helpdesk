@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { parseBody } from "../utils/validation";
 import { classifyTicket } from "../utils/classify-ticket";
+import { autoResolveTicket } from "../utils/auto-resolve-ticket";
 import prisma from "../db";
 import { inboundEmailSchema } from "core/schemas/ticket";
 
@@ -28,6 +29,7 @@ router.post("/inbound-email", async (req: Request, res: Response) => {
   });
 
   classifyTicket(ticket.id, ticket.subject, ticket.body);
+  autoResolveTicket(ticket.id, ticket.subject, ticket.body, ticket.senderName);
 
   res.status(201).json({ status: "created", ticketId: ticket.id });
 });
