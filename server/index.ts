@@ -9,6 +9,8 @@ import ticketsRouter from "./routes/tickets";
 import usersRouter from "./routes/users";
 import webhooksRouter from "./routes/webhooks";
 import { startSmtpServer } from "./smtp";
+import boss from "./queue";
+import { startClassifyWorker } from "./workers/classify-ticket";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -53,7 +55,9 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server running at http://localhost:${port}`);
+  await boss.start();
+  await startClassifyWorker();
   startSmtpServer();
 });
