@@ -80,11 +80,12 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Sentry error handler must be after all routes and before any other error middleware.
-Sentry.setupExpressErrorHandler(app);
-
+// Note: Sentry.setupExpressErrorHandler() is not used — @sentry/bun can't auto-instrument
+// Express under the Bun runtime (it throws "express is not instrumented"). Instead we
+// report errors manually below; global/uncaught errors are still captured via instrument.ts.
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
+  Sentry.captureException(err);
   res.status(500).json({ error: "Internal server error" });
 });
 
