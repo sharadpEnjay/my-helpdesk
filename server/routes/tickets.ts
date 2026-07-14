@@ -9,6 +9,8 @@ import { updateTicketSchema } from "core/schemas/ticket";
 import { createReplySchema } from "core/schemas/reply";
 import { polishReplySchema } from "core/schemas/ai";
 import { parseBody } from "../utils/validation";
+import { enqueueSendEmail } from "../utils/send-email";
+import { buildReplyTo, buildSubject } from "../utils/email-thread";
 
 const router = Router();
 
@@ -178,6 +180,23 @@ router.post("/:id/replies", requireAuth, async (req: Request, res: Response) => 
     },
     include: { user: { select: { id: true, name: true, email: true } } },
   });
+
+  // Email the customer when an agent replies. Non-fatal: the reply is already saved,
+  // so a send hiccup must not fail the request.
+  if (data.senderType === "agent") {
+    try {
+      await enqueueSendEmail({
+        to: ticket.senderEmail,
+        subject: buildSubject(ticket.id, ticket.subject),
+        text: data.body,
+        html: data.bodyHtml ?? null,
+        replyTo: buildReplyTo(ticket.id),
+        ticketId: ticket.id,
+      });
+    } catch (mailErr) {
+      console.error(`Failed to enqueue outbound email for ticket #${ticket.id}:`, mailErr);
+    }
+  }
 
   res.status(201).json(reply);
 });

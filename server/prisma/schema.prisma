@@ -55,15 +55,17 @@ model Ticket {
 }
 
 model Reply {
-  id         Int        @id @default(autoincrement())
-  body       String
-  bodyHtml   String?
-  senderType SenderType
-  ticketId   Int
-  ticket     Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  userId     String?
-  user       user?      @relation(fields: [userId], references: [id])
-  createdAt  DateTime   @default(now())
+  id             Int        @id @default(autoincrement())
+  body           String
+  bodyHtml       String?
+  senderType     SenderType
+  senderEmail    String?
+  emailMessageId String?    @unique
+  ticketId       Int
+  ticket         Ticket     @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           user?      @relation(fields: [userId], references: [id])
+  createdAt      DateTime   @default(now())
 
   @@index([ticketId])
   @@map("reply")

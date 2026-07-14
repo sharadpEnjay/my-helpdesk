@@ -99,6 +99,18 @@ cd server && bunx prisma studio            # visual database browser
 - `TRUSTED_ORIGINS` — comma-separated Better Auth CSRF origins
 - `NODE_ENV=production` — enables secure cookies and auth rate limiting
 - `GROK_API_KEY` — Groq API key for the AI reply-polish endpoint (`POST /api/tickets/:id/polish-reply`, llama-3.3-70b via Vercel AI SDK)
+- `SENDGRID_API_KEY` — SendGrid API key for outbound email (agent + AI auto-replies), sent via a `send-email` pg-boss queue
+- `SENDGRID_FROM_EMAIL` — verified SendGrid Single Sender address (no domain/DNS needed); must equal `IMAP_USER` so plus-addressed replies thread back
+- `SENDGRID_FROM_NAME` — optional sender display name (default `Support Team`)
+- `IMAP_HOST` / `IMAP_PORT` — inbound mailbox (default `imap.gmail.com` / `993`)
+- `IMAP_USER` / `IMAP_PASSWORD` — Gmail address + **App Password** the poller reads inbound email from (needs 2-Step Verification). Poller is skipped if unset
+- `IMAP_POLL_INTERVAL_MS` — inbound poll interval (default `30000`)
+- `IMAP_MAILBOX` — the **only** Gmail label/folder the poller reads (default `Test`); all other mail is ignored. Every unread message in it becomes a ticket (new) or threads onto an existing one (reply)
+
+### Email (SendGrid outbound + IMAP inbound)
+- **Outbound**: `server/workers/send-email.ts` (`send-email` queue) sends via `@sendgrid/mail`. Enqueued from `POST /api/tickets/:id/replies` (agent replies) and `workers/auto-resolve-ticket.ts` (AI replies) using `utils/send-email.ts`.
+- **Inbound**: `server/imap.ts` polls **only the `IMAP_MAILBOX` Gmail label** (default `Test`); every unread message becomes a ticket (new) or threads onto an existing one (reply). It parses with `mailparser` and feeds the shared `utils/process-inbound-email.ts`. The raw SMTP server (`smtp.ts`) and `/api/webhooks/inbound-email` also route through this same processor.
+- **Threading** (`utils/email-thread.ts`): outbound sets a plus-addressed `Reply-To` (`user+t<id>@gmail.com`) and a `[Ticket #<id>]` subject tag; inbound recovers the ticket id from either and appends a `customer` `Reply` (reopening the ticket) instead of creating a duplicate. `Reply.emailMessageId` (unique) guards against double-processing.
 
 ### Testing Strategy
 - **Prefer component tests** (Vitest + React Testing Library) for all UI rendering, user interactions, states (loading/error/empty), and data display. These are fast, reliable, and cover the majority of frontend behavior.

@@ -10,9 +10,11 @@ import usersRouter from "./routes/users";
 import webhooksRouter from "./routes/webhooks";
 import dashboardRouter from "./routes/dashboard";
 import { startSmtpServer } from "./smtp";
+import { startImapPoller } from "./imap";
 import boss from "./queue";
 import { startClassifyWorker } from "./workers/classify-ticket";
 import { startAutoResolveWorker } from "./workers/auto-resolve-ticket";
+import { startSendEmailWorker } from "./workers/send-email";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -63,5 +65,7 @@ app.listen(port, async () => {
   await boss.start();
   await startClassifyWorker();
   await startAutoResolveWorker();
+  await startSendEmailWorker();
   startSmtpServer();
+  startImapPoller();
 });

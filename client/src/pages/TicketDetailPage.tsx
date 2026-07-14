@@ -23,7 +23,7 @@ export function TicketDetailPage({ userName, role }: TicketDetailPageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">
+    <div className="min-h-screen text-foreground">
       <Navbar userName={userName} role={role} />
       <div className="px-8 pb-8 max-w-6xl mx-auto">
         <div className="mb-6">

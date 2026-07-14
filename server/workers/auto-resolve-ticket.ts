@@ -2,6 +2,8 @@ import { generateText } from "ai";
 import { groq } from "../ai";
 import prisma from "../db";
 import boss from "../queue";
+import { enqueueSendEmail } from "../utils/send-email";
+import { buildReplyTo, buildSubject } from "../utils/email-thread";
 
 const QUEUE = "auto-resolve-ticket";
 
@@ -14,6 +16,7 @@ export interface AutoResolveData {
   subject: string;
   body: string;
   senderName: string;
+  senderEmail: string;
 }
 
 export async function startAutoResolveWorker() {
@@ -24,7 +27,7 @@ export async function startAutoResolveWorker() {
   });
 
   await boss.work(QUEUE, async ([job]) => {
-    const { ticketId, subject, body, senderName } = job.data as AutoResolveData;
+    const { ticketId, subject, body, senderName, senderEmail } = job.data as AutoResolveData;
 
     await prisma.ticket.update({
       where: { id: ticketId },
@@ -76,6 +79,21 @@ Message: ${body}`,
           data: { status: "resolved" },
         }),
       ]);
+
+      // Email the AI auto-response to the customer. Non-fatal: the reply is already
+      // committed, so a send hiccup must not roll the ticket back and retry (which
+      // would generate a duplicate reply).
+      try {
+        await enqueueSendEmail({
+          to: senderEmail,
+          subject: buildSubject(ticketId, subject),
+          text: reply,
+          replyTo: buildReplyTo(ticketId),
+          ticketId,
+        });
+      } catch (mailErr) {
+        console.error(`Failed to enqueue outbound email for ticket #${ticketId}:`, mailErr);
+      }
     } catch (err) {
       await prisma.ticket.update({
         where: { id: ticketId },

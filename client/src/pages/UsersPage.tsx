@@ -31,7 +31,7 @@ export function UsersPage({ userName, role }: UsersPageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white/87">
+    <div className="min-h-screen text-foreground">
       <Navbar userName={userName} role={role} />
       <div className="px-8 pb-8 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">

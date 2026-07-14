@@ -1,11 +1,15 @@
 import { SMTPServer } from "smtp-server";
-import { simpleParser } from "mailparser";
-import { stripSubjectPrefix } from "core/schemas/ticket";
-import { classifyTicket } from "./utils/classify-ticket";
-import { autoResolveTicket } from "./utils/auto-resolve-ticket";
-import prisma from "./db";
+import { simpleParser, type AddressObject } from "mailparser";
+import { processInboundEmail } from "./utils/process-inbound-email";
 
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 2525;
+
+// Flatten mailparser's to/cc address objects into a plain list of addresses.
+function collectAddresses(to: AddressObject | AddressObject[] | undefined): string[] {
+  if (!to) return [];
+  const objects = Array.isArray(to) ? to : [to];
+  return objects.flatMap((o) => o.value.map((v) => v.address).filter((a): a is string => !!a));
+}
 
 const server = new SMTPServer({
   authOptional: true,
@@ -16,27 +20,19 @@ const server = new SMTPServer({
     stream.on("end", async () => {
       try {
         const parsed = await simpleParser(raw);
+        const sender = parsed.from?.value[0];
 
-        const senderAddress = parsed.from?.value[0];
-        const senderEmail = senderAddress?.address ?? "unknown@unknown.com";
-        const senderName = senderAddress?.name || "Unknown";
-        const subject = stripSubjectPrefix(parsed.subject || "(No subject)");
-        const body = parsed.text || "";
-        const bodyHtml = parsed.html || null;
-
-        const ticket = await prisma.ticket.create({
-          data: {
-            subject,
-            body,
-            bodyHtml,
-            senderEmail,
-            senderName,
-          },
+        const result = await processInboundEmail({
+          fromEmail: sender?.address ?? "unknown@unknown.com",
+          fromName: sender?.name || undefined,
+          subject: parsed.subject || "(No subject)",
+          text: parsed.text || "",
+          html: parsed.html || null,
+          toAddresses: collectAddresses(parsed.to),
+          messageId: parsed.messageId ?? null,
         });
 
-        classifyTicket(ticket.id, ticket.subject, ticket.body);
-        autoResolveTicket(ticket.id, ticket.subject, ticket.body, ticket.senderName);
-        console.log(`Ticket #${ticket.id} created from email: "${subject}" <${senderEmail}>`);
+        console.log(`Inbound email (SMTP): ${result.action} ticket #${result.ticketId}`);
       } catch (err) {
         console.error("Failed to process inbound email:", err);
       }
