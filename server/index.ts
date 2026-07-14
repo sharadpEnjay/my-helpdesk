@@ -88,8 +88,10 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(port, async () => {
-  console.log(`Server running at http://localhost:${port}`);
+// Bind to 0.0.0.0 (not localhost) so the container's platform proxy (Railway, etc.)
+// can reach the app — otherwise external requests 502.
+app.listen(Number(port), "0.0.0.0", async () => {
+  console.log(`Server running on 0.0.0.0:${port}`);
   await boss.start();
   await startClassifyWorker();
   await startAutoResolveWorker();
