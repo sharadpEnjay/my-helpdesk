@@ -1,0 +1,24 @@
+# Rebuilt inside the image
+node_modules
+**/node_modules
+client/dist
+server/prisma/client
+
+# Secrets — provided as Railway environment variables, never baked into the image
+.env
+**/.env
+
+# VCS / local tooling / test artifacts
+.git
+.gitignore
+.idea
+.agents
+.claude
+**/.claude
+e2e/test-results
+e2e/playwright-report
+**/*.tsbuildinfo
+**/*.log
+
+# Docs not needed at build time
+DEPLOYMENT.md

@@ -1,6 +1,7 @@
 // Must be imported before any other module so Sentry can instrument them.
 import "./instrument";
 
+import path from "path";
 import * as Sentry from "@sentry/bun";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
@@ -23,7 +24,15 @@ import { startSendEmailWorker } from "./workers/send-email";
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(helmet());
+app.use(
+  helmet({
+    // The SPA is served from this same origin in production; helmet's default
+    // Content-Security-Policy would block the app's inline styles (Radix) and the
+    // browser Sentry SDK. Disable CSP here (parity with the Vite dev server, which
+    // serves without CSP) — all other helmet protections stay on.
+    contentSecurityPolicy: false,
+  })
+);
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(",") ?? ["http://localhost:5173"],
   credentials: true,
@@ -60,6 +69,17 @@ app.use("/api/users", usersRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/dashboard", dashboardRouter);
 
+// In production, serve the built client from this same service (single origin), so
+// relative `/api` calls and auth cookies work without any CORS/cross-site setup.
+if (process.env.NODE_ENV === "production") {
+  const clientDist = path.resolve(import.meta.dir, "../client/dist");
+  app.use(express.static(clientDist));
+  // SPA fallback: any non-API GET returns index.html so client-side routing works.
+  app.get(/^\/(?!api\/).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
+
 // Sentry error handler must be after all routes and before any other error middleware.
 Sentry.setupExpressErrorHandler(app);
 
@@ -74,6 +94,10 @@ app.listen(port, async () => {
   await startClassifyWorker();
   await startAutoResolveWorker();
   await startSendEmailWorker();
-  startSmtpServer();
+  // Raw SMTP ingestion is opt-in: Railway only routes the one HTTP port, so inbound
+  // mail arrives via the IMAP poller. Enable this only where a public SMTP port exists.
+  if (process.env.ENABLE_SMTP_SERVER === "true") {
+    startSmtpServer();
+  }
   startImapPoller();
 });
