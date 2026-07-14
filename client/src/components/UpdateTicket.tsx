@@ -50,7 +50,10 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
+      <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+        Manage
+      </p>
       <FieldSelect
         label="Status"
         value={ticket.status}
@@ -112,12 +115,14 @@ function FieldSelect({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="text-xs text-slate-500 mb-2">{label}</div>
+    <div className="rounded-lg border border-border bg-surface p-4">
+      <div className="mb-2 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           aria-label={label}
-          className={`w-full bg-white/[0.05] border-white/10 text-white ${triggerClassName ?? ""}`}
+          className={`w-full ${triggerClassName ?? ""}`}
         >
           <SelectValue />
         </SelectTrigger>

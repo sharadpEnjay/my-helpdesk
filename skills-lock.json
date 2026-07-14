@@ -19,6 +19,18 @@
       "skillPath": "better-auth/emailAndPassword/SKILL.md",
       "computedHash": "747d7f73bd9e2ec5317b8ef88dc70f97df716d00e3d02de4051feebaa48b062d"
     },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
+    },
+    "frontend-design-direction": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design-direction/SKILL.md",
+      "computedHash": "5e37a3a8e90de1da40881a2ed80de2a7246b46201cc325598c1b60fb3e8c4cfe"
+    },
     "organization-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",

@@ -1,7 +1,6 @@
 import { useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Navbar } from "../components/Navbar";
 import { BackButton } from "../components/BackButton";
 import { TicketDetail } from "../components/TicketDetail";
 import { ReplyThread } from "../components/ReplyThread";
@@ -9,12 +8,7 @@ import { UpdateTicket } from "../components/UpdateTicket";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type Ticket } from "core/schemas/ticket";
 
-interface TicketDetailPageProps {
-  userName: string;
-  role?: string;
-}
-
-export function TicketDetailPage({ userName, role }: TicketDetailPageProps) {
+export function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: ticket, isPending, error } = useQuery({
@@ -23,56 +17,51 @@ export function TicketDetailPage({ userName, role }: TicketDetailPageProps) {
   });
 
   return (
-    <div className="min-h-screen text-foreground">
-      <Navbar userName={userName} role={role} />
-      <div className="px-8 pb-8 max-w-6xl mx-auto">
-        <div className="mb-6">
-          <BackButton to="/tickets" label="Back to tickets" />
+    <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-8">
+      <BackButton to="/tickets" label="Back to queue" />
 
-          {isPending && <DetailSkeleton />}
+      {isPending && <DetailSkeleton />}
 
-          {error && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
-              {error.message}
-            </div>
-          )}
-
-          {ticket && (
-            <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-2 space-y-6">
-                <TicketDetail ticket={ticket} />
-
-                <ReplyThread ticket={ticket} />
-
-                <div className="text-xs text-slate-500">
-                  Last updated {new Date(ticket.updatedAt).toLocaleString()}
-                </div>
-              </div>
-
-              <UpdateTicket ticket={ticket} />
-            </div>
-          )}
+      {error && (
+        <div className="rounded-lg border border-sla-breach/25 bg-sla-breach/10 p-4 text-sm text-sla-breach">
+          {error.message}
         </div>
-      </div>
-    </div>
+      )}
+
+      {ticket && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <TicketDetail ticket={ticket} />
+
+            <ReplyThread ticket={ticket} />
+
+            <div className="font-mono text-xs text-muted-foreground">
+              Last updated {new Date(ticket.updatedAt).toLocaleString()}
+            </div>
+          </div>
+
+          <UpdateTicket ticket={ticket} />
+        </div>
+      )}
+    </main>
   );
 }
 
 function DetailSkeleton() {
   return (
-    <div className="grid grid-cols-3 gap-6">
-      <div className="col-span-2 space-y-6">
-        <div>
-          <Skeleton className="h-9 w-96 bg-white/10 mb-2" />
-          <Skeleton className="h-4 w-48 bg-white/10" />
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-96 max-w-full" />
+          <Skeleton className="h-4 w-48" />
         </div>
-        <Skeleton className="h-20 bg-white/10 rounded-xl" />
-        <Skeleton className="h-48 bg-white/10 rounded-2xl" />
+        <Skeleton className="h-20 rounded-lg" />
+        <Skeleton className="h-48 rounded-lg" />
       </div>
       <div className="space-y-4">
-        <Skeleton className="h-20 bg-white/10 rounded-xl" />
-        <Skeleton className="h-20 bg-white/10 rounded-xl" />
-        <Skeleton className="h-20 bg-white/10 rounded-xl" />
+        <Skeleton className="h-20 rounded-lg" />
+        <Skeleton className="h-20 rounded-lg" />
+        <Skeleton className="h-20 rounded-lg" />
       </div>
     </div>
   );

@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Inter Variable', system-ui, sans-serif;
+    --font-heading: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+    --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +43,15 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+
+    /* Control Room · SLA status spectrum (functional, not decorative) */
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-2);
+    --color-sla-fresh: var(--sla-fresh);
+    --color-sla-soon: var(--sla-soon);
+    --color-sla-breach: var(--sla-breach);
+    --color-sla-calm: var(--sla-calm);
+
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -48,91 +61,104 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.541 0.281 293.009);
-    --primary-foreground: oklch(0.969 0.016 293.756);
-    --secondary: oklch(0.968 0.014 293.756);
-    --secondary-foreground: oklch(0.387 0.16 293.009);
-    --muted: oklch(0.968 0.014 293.756);
-    --muted-foreground: oklch(0.553 0.013 286.067);
-    --accent: oklch(0.968 0.014 293.756);
-    --accent-foreground: oklch(0.387 0.16 293.009);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.919 0.018 293.756);
-    --input: oklch(0.919 0.018 293.756);
-    --ring: oklch(0.541 0.281 293.009);
-    --chart-1: oklch(0.606 0.25 292.717);
-    --chart-2: oklch(0.541 0.281 293.009);
-    --chart-3: oklch(0.457 0.24 293.009);
-    --chart-4: oklch(0.387 0.16 293.009);
-    --chart-5: oklch(0.31 0.12 293.009);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0.008 293.756);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.541 0.281 293.009);
-    --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
-    --sidebar-accent: oklch(0.968 0.014 293.756);
-    --sidebar-accent-foreground: oklch(0.387 0.16 293.009);
-    --sidebar-border: oklch(0.919 0.018 293.756);
-    --sidebar-ring: oklch(0.541 0.281 293.009);
-}
-
+/* Control Room is a single, committed dark console. :root and .dark match. */
+:root,
 .dark {
     color-scheme: dark;
-    --background: oklch(0.16 0.006 293.756);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.654 0.246 293.009);
-    --primary-foreground: oklch(0.21 0.034 293.009);
-    --secondary: oklch(0.269 0.033 293.009);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0.033 293.009);
-    --muted-foreground: oklch(0.708 0.02 293.009);
-    --accent: oklch(0.269 0.033 293.009);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.654 0.246 293.009);
-    --chart-1: oklch(0.74 0.2 293.009);
-    --chart-2: oklch(0.654 0.246 293.009);
-    --chart-3: oklch(0.541 0.281 293.009);
-    --chart-4: oklch(0.457 0.24 293.009);
-    --chart-5: oklch(0.387 0.16 293.009);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.654 0.246 293.009);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0.033 293.009);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.654 0.246 293.009);
+
+    --background: #0e1116;
+    --foreground: #e6eaf0;
+
+    --surface: #171b22;
+    --surface-2: #1e242e;
+
+    --card: #171b22;
+    --card-foreground: #e6eaf0;
+    --popover: #1e242e;
+    --popover-foreground: #e6eaf0;
+
+    --primary: #22d3b7;
+    --primary-foreground: #06130f;
+
+    --secondary: #232a34;
+    --secondary-foreground: #d3d9e2;
+
+    --muted: #1b212a;
+    --muted-foreground: #8a94a6;
+
+    --accent: #232a34;
+    --accent-foreground: #e6eaf0;
+
+    --destructive: #f2555a;
+
+    --border: oklch(1 0 0 / 8%);
+    --input: oklch(1 0 0 / 12%);
+    --ring: #22d3b7;
+
+    /* SLA / ticket-age spectrum */
+    --sla-fresh: #22d3b7;
+    --sla-soon: #f5b841;
+    --sla-breach: #f2555a;
+    --sla-calm: #6b7688;
+
+    --chart-1: #22d3b7;
+    --chart-2: #4cc9e0;
+    --chart-3: #f5b841;
+    --chart-4: #f2555a;
+    --chart-5: #6b7688;
+
+    --radius: 0.5rem;
+
+    --sidebar: #10141a;
+    --sidebar-foreground: #cbd2dd;
+    --sidebar-primary: #22d3b7;
+    --sidebar-primary-foreground: #06130f;
+    --sidebar-accent: #1c222b;
+    --sidebar-accent-foreground: #e6eaf0;
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: #22d3b7;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
     background-color: var(--background);
+    /* Quiet control-room canvas: faint vertical vignette + hairline grid */
     background-image:
-      radial-gradient(60rem 40rem at 100% -10%, oklch(0.55 0.28 293 / 0.16), transparent 60%),
-      radial-gradient(50rem 32rem at -10% 5%, oklch(0.55 0.28 293 / 0.10), transparent 55%);
+      radial-gradient(80rem 44rem at 50% -12%, oklch(0.72 0.14 178 / 0.06), transparent 60%),
+      linear-gradient(to right, oklch(1 0 0 / 0.015) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 44px 44px, 44px 44px;
     background-attachment: fixed;
-    background-repeat: no-repeat;
-    }
+    background-repeat: no-repeat, repeat, repeat;
+    font-feature-settings: "cv01", "cv03", "ss03";
+  }
   html {
-    @apply font-sans;
-    }
+    @apply font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+}
+
+@utility font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+}
+
+/* SLA pulse — a slow breath on the freshest, at-risk tickets */
+@keyframes sla-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.sla-pulse {
+  animation: sla-pulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sla-pulse { animation: none; }
 }

@@ -40,8 +40,10 @@ describe("TicketDetail", () => {
   test("renders ticket id and creation date", () => {
     renderWithProviders(<TicketDetail ticket={makeTicket()} />);
 
-    expect(screen.getByText("#42")).toBeInTheDocument();
-    expect(screen.getByText(new Date("2026-07-01T10:00:00.000Z").toLocaleString())).toBeInTheDocument();
+    expect(screen.getByText("#0042")).toBeInTheDocument();
+    expect(
+      screen.getByText(`Opened ${new Date("2026-07-01T10:00:00.000Z").toLocaleString()}`),
+    ).toBeInTheDocument();
   });
 
   test("renders sender name and email", () => {
@@ -110,7 +112,7 @@ describe("TicketDetail", () => {
     expect(
       await screen.findByText("Customer reported a login issue after the last update."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Summary")).toBeInTheDocument();
+    expect(screen.getByText("AI Summary")).toBeInTheDocument();
   });
 
   test("shows Summarizing... while request is in flight", async () => {

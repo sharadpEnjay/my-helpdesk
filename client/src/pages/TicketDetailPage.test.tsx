@@ -4,6 +4,7 @@ import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route } from "react-router";
 import { TicketDetailPage } from "./TicketDetailPage";
+import type { Ticket } from "core/schemas/ticket";
 import axios from "axios";
 
 vi.mock("axios");
@@ -23,7 +24,7 @@ beforeEach(() => {
   }));
 });
 
-const MOCK_TICKET = {
+const MOCK_TICKET: Ticket = {
   id: 1,
   subject: "Login not working",
   body: "I cannot log in to my account.",
@@ -68,7 +69,7 @@ function renderDetailPage(ticketId = "1") {
         <Routes>
           <Route
             path="/tickets/:id"
-            element={<TicketDetailPage userName="Admin" role="admin" />}
+            element={<TicketDetailPage />}
           />
         </Routes>
       </MemoryRouter>
@@ -78,7 +79,7 @@ function renderDetailPage(ticketId = "1") {
 
 function getSelectTriggerByLabel(label: string) {
   const labelEl = screen.getByText(label);
-  const container = labelEl.closest('[class*="rounded-xl"]')!;
+  const container = labelEl.closest('[class*="rounded-lg"]')!;
   return container.querySelector('[data-slot="select-trigger"]')!;
 }
 
@@ -117,7 +118,7 @@ describe("TicketDetailPage", () => {
     renderDetailPage();
 
     expect(await screen.findByText("Login not working")).toBeInTheDocument();
-    expect(screen.getByText("#1")).toBeInTheDocument();
+    expect(screen.getByText("#0001")).toBeInTheDocument();
   });
 
   test("renders sender info", async () => {
@@ -153,7 +154,7 @@ describe("TicketDetailPage", () => {
     renderDetailPage();
 
     await screen.findByText("Login not working");
-    const backLink = screen.getByRole("link", { name: /back to tickets/i });
+    const backLink = screen.getByRole("link", { name: /back to queue/i });
     expect(backLink).toHaveAttribute("href", "/tickets");
   });
 

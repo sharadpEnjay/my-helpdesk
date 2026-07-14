@@ -41,14 +41,14 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
   const hasActiveFilters = filters.status || filters.category || filters.search;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-4">
+    <div className="mb-4 flex flex-wrap items-center gap-3">
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+        <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search tickets..."
           value={filters.search}
           onChange={(e) => update({ search: e.target.value })}
-          className="pl-8 w-56 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-500"
+          className="w-56 pl-8"
         />
       </div>
 
@@ -73,9 +73,9 @@ export function TicketFilters({ filters, onFiltersChange }: TicketFiltersProps) 
       {hasActiveFilters && (
         <button
           onClick={() => onFiltersChange({ status: "", category: "", search: "" })}
-          className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded-md hover:bg-white/[0.05]"
+          className="flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <X className="h-3 w-3" />
+          <X className="size-3" />
           Clear
         </button>
       )}

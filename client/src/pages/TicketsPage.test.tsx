@@ -16,6 +16,7 @@ const MOCK_TICKETS = [
     status: "open" as const,
     category: "technical" as const,
     createdAt: "2026-07-01T10:00:00Z",
+    updatedAt: "2026-07-01T10:00:00Z",
   },
   {
     id: 2,
@@ -25,6 +26,7 @@ const MOCK_TICKETS = [
     status: "pending" as const,
     category: null,
     createdAt: "2026-06-28T08:00:00Z",
+    updatedAt: "2026-06-28T08:00:00Z",
   },
 ];
 
@@ -32,8 +34,8 @@ function mockResponse(tickets = MOCK_TICKETS) {
   return { data: { data: tickets, total: tickets.length, page: 1, pageSize: 10 } };
 }
 
-function renderTicketsPage(props: { userName: string; role?: string } = { userName: "Admin", role: "admin" }) {
-  return renderWithProviders(<TicketsPage {...props} />);
+function renderTicketsPage() {
+  return renderWithProviders(<TicketsPage />);
 }
 
 describe("TicketsPage", () => {
@@ -44,7 +46,7 @@ describe("TicketsPage", () => {
   test("renders the page heading", () => {
     mockedAxios.get.mockReturnValue(new Promise(() => {}));
     renderTicketsPage();
-    expect(screen.getByRole("heading", { name: "Tickets" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Queue" })).toBeInTheDocument();
   });
 
   test("renders table column headers", async () => {
@@ -52,7 +54,7 @@ describe("TicketsPage", () => {
     renderTicketsPage();
 
     await screen.findByText("Login not working");
-    for (const col of ["Subject", "From", "Status", "Category", "Created"]) {
+    for (const col of ["ID", "Subject", "From", "Status", "Category", "Age"]) {
       expect(screen.getByRole("columnheader", { name: new RegExp(col) })).toBeInTheDocument();
     }
   });
@@ -68,7 +70,7 @@ describe("TicketsPage", () => {
     mockedAxios.get.mockResolvedValue(mockResponse([]));
     renderTicketsPage();
 
-    expect(await screen.findByText("No tickets found")).toBeInTheDocument();
+    expect(await screen.findByText(/Queue clear/)).toBeInTheDocument();
   });
 
   test("shows error message on fetch failure", async () => {
@@ -78,7 +80,7 @@ describe("TicketsPage", () => {
     expect(await screen.findByText("Network Error")).toBeInTheDocument();
   });
 
-  test("renders ticket row with subject, sender, status, category, and date", async () => {
+  test("renders ticket row with id, subject, sender, status, category, and age", async () => {
     mockedAxios.get.mockResolvedValue(mockResponse());
     renderTicketsPage();
 
@@ -87,12 +89,14 @@ describe("TicketsPage", () => {
     );
     const cells = within(row).getAllByRole("cell");
 
+    expect(within(row).getByText("#0001")).toBeInTheDocument();
     expect(within(row).getByText("Login not working")).toBeInTheDocument();
     expect(within(row).getByText("Jane Doe")).toBeInTheDocument();
     expect(within(row).getByText("jane@example.com")).toBeInTheDocument();
     expect(within(row).getByText("open")).toBeInTheDocument();
     expect(within(row).getByText("technical")).toBeInTheDocument();
-    expect(cells[4]!.textContent).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+    // Age column renders a relative duration (e.g. "14d", "2h 5m", "now").
+    expect(cells[5]!.textContent).toMatch(/\d+[dhm]|now/);
   });
 
   test("renders em dash when category is null", async () => {
@@ -126,10 +130,4 @@ describe("TicketsPage", () => {
     });
   });
 
-  test("renders the navbar with user name", () => {
-    mockedAxios.get.mockReturnValue(new Promise(() => {}));
-    renderTicketsPage({ userName: "Test User", role: "admin" });
-
-    expect(screen.getByText("Test User")).toBeInTheDocument();
-  });
 });

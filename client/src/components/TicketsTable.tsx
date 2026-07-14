@@ -17,10 +17,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Link } from "react-router";
 import { type Ticket } from "core/schemas/ticket";
+import type { TicketStatus } from "core/constants/ticket";
 import { statusStyles } from "@/lib/ticket-styles";
+import { getSlaSignal } from "@/lib/sla";
+import { cn } from "@/lib/utils";
 
 export type { Ticket };
 
@@ -35,14 +46,43 @@ interface TicketsTableProps {
   onPaginationChange: (pagination: PaginationState) => void;
 }
 
+/** The signature element: a live age/pressure gauge per ticket. */
+function SlaPulse({ status, updatedAt }: { status: TicketStatus; updatedAt: string }) {
+  const sla = getSlaSignal(status, updatedAt);
+  return (
+    <div className="flex items-center gap-2" title={`Waiting ${sla.label}`}>
+      <span
+        className={cn(
+          "size-2 shrink-0 rounded-full",
+          sla.pulse && "sla-pulse",
+        )}
+        style={{ backgroundColor: sla.color }}
+      />
+      <span className={cn("font-mono text-xs tabular-nums", sla.textClass)}>
+        {sla.label}
+      </span>
+    </div>
+  );
+}
+
 const columns: ColumnDef<Ticket>[] = [
+  {
+    accessorKey: "id",
+    header: "ID",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">
+        #{String(row.original.id).padStart(4, "0")}
+      </span>
+    ),
+  },
   {
     accessorKey: "subject",
     header: "Subject",
     cell: ({ row }) => (
       <Link
         to={`/tickets/${row.original.id}`}
-        className="font-medium text-white hover:text-purple-400 transition-colors"
+        className="font-medium text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
       >
         {row.getValue("subject")}
       </Link>
@@ -51,10 +91,15 @@ const columns: ColumnDef<Ticket>[] = [
   {
     accessorKey: "senderName",
     header: "From",
+    enableSorting: false,
     cell: ({ row }) => (
-      <div className="text-slate-300">
-        <div>{row.original.senderName}</div>
-        <div className="text-xs text-slate-500">{row.original.senderEmail}</div>
+      <div className="min-w-0">
+        <div className="truncate text-sm text-foreground/90">
+          {row.original.senderName}
+        </div>
+        <div className="truncate font-mono text-[0.7rem] text-muted-foreground">
+          {row.original.senderEmail}
+        </div>
       </div>
     ),
   },
@@ -64,7 +109,7 @@ const columns: ColumnDef<Ticket>[] = [
     cell: ({ row }) => {
       const status = row.getValue<TicketStatus>("status");
       return (
-        <Badge className={statusStyles[status]}>
+        <Badge variant="outline" className={cn("capitalize", statusStyles[status])}>
           {status}
         </Badge>
       );
@@ -73,24 +118,37 @@ const columns: ColumnDef<Ticket>[] = [
   {
     accessorKey: "category",
     header: "Category",
+    enableSorting: false,
     cell: ({ row }) => (
-      <span className="text-slate-400">
+      <span className="font-mono text-xs text-muted-foreground">
         {row.getValue<string | null>("category") ?? "—"}
       </span>
     ),
   },
   {
-    accessorKey: "createdAt",
-    header: "Created",
+    accessorKey: "updatedAt",
+    header: "Age",
     cell: ({ row }) => (
-      <span className="text-slate-400">
-        {new Date(row.getValue<string>("createdAt")).toLocaleDateString()}
-      </span>
+      <SlaPulse
+        status={row.original.status}
+        updatedAt={row.original.updatedAt}
+      />
     ),
   },
 ];
 
-export function TicketsTable({ tickets, total, isPending, error, sorting, onSortingChange, pagination, onPaginationChange }: TicketsTableProps) {
+const COL_COUNT = columns.length;
+
+export function TicketsTable({
+  tickets,
+  total,
+  isPending,
+  error,
+  sorting,
+  onSortingChange,
+  pagination,
+  onPaginationChange,
+}: TicketsTableProps) {
   const pageCount = Math.ceil(total / pagination.pageSize);
 
   const table = useReactTable({
@@ -102,7 +160,8 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
       onSortingChange(next);
     },
     onPaginationChange: (updater) => {
-      const next = typeof updater === "function" ? updater(pagination) : updater;
+      const next =
+        typeof updater === "function" ? updater(pagination) : updater;
       onPaginationChange(next);
     },
     getCoreRowModel: getCoreRowModel(),
@@ -111,38 +170,9 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
     pageCount,
   });
 
-  if (isPending) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10 hover:bg-white/[0.02]">
-              {table.getHeaderGroups()[0]?.headers.map((header) => (
-                <TableHead key={header.id} className="text-slate-400">
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i} className="border-white/10">
-                <TableCell><Skeleton className="h-4 w-48 bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-32 bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-14 rounded-full bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-16 rounded-full bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20 bg-white/10" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
+      <div className="rounded-lg border border-sla-breach/25 bg-sla-breach/10 p-4 text-sm text-sla-breach">
         {error.message}
       </div>
     );
@@ -150,27 +180,40 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
 
   return (
     <div>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-white/[0.02]">
+            <TableRow className="border-border hover:bg-transparent">
               {table.getHeaderGroups()[0]?.headers.map((header) => {
+                const canSort = header.column.getCanSort();
                 const sorted = header.column.getIsSorted();
                 return (
                   <TableHead
                     key={header.id}
-                    className="text-slate-400 cursor-pointer select-none hover:text-slate-200 transition-colors"
-                    onClick={header.column.getToggleSortingHandler()}
+                    className={cn(
+                      "h-10 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-muted-foreground select-none",
+                      canSort &&
+                        "cursor-pointer transition-colors hover:text-foreground",
+                    )}
+                    onClick={
+                      canSort
+                        ? header.column.getToggleSortingHandler()
+                        : undefined
+                    }
                   >
-                    <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {sorted === "asc" ? (
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      ) : sorted === "desc" ? (
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      ) : (
-                        <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />
+                    <div className="flex items-center gap-1.5">
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
                       )}
+                      {canSort &&
+                        (sorted === "asc" ? (
+                          <ArrowUp className="size-3" />
+                        ) : sorted === "desc" ? (
+                          <ArrowDown className="size-3" />
+                        ) : (
+                          <ArrowUpDown className="size-3 opacity-30" />
+                        ))}
                     </div>
                   </TableHead>
                 );
@@ -178,19 +221,41 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
             </TableRow>
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} className="border-white/10 hover:bg-white/[0.04]">
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+            {isPending
+              ? Array.from({ length: pagination.pageSize }).map((_, i) => (
+                  <TableRow key={i} className="border-border">
+                    <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  </TableRow>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className="border-border transition-colors hover:bg-accent/50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-3">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-            {tickets.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-slate-500 py-8">
-                  No tickets found
+            {!isPending && tickets.length === 0 && (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={COL_COUNT}
+                  className="py-14 text-center"
+                >
+                  <p className="font-mono text-sm text-muted-foreground">
+                    Queue clear — no tickets match.
+                  </p>
                 </TableCell>
               </TableRow>
             )}
@@ -199,8 +264,8 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
       </div>
 
       {pageCount > 1 && (
-        <div className="flex items-center justify-between mt-4 px-1">
-          <span className="text-sm text-slate-400">
+        <div className="mt-4 flex items-center justify-between px-1">
+          <span className="font-mono text-xs text-muted-foreground">
             {total} ticket{total !== 1 && "s"}
           </span>
           <div className="flex items-center gap-1">
@@ -209,20 +274,18 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
               size="icon-sm"
               onClick={() => table.firstPage()}
               disabled={!table.getCanPreviousPage()}
-              className="text-slate-400 hover:text-white"
             >
-              <ChevronsLeft className="h-4 w-4" />
+              <ChevronsLeft className="size-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="text-slate-400 hover:text-white"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="size-4" />
             </Button>
-            <span className="text-sm text-slate-300 px-2">
+            <span className="px-2 font-mono text-xs tabular-nums text-foreground/80">
               {pagination.pageIndex + 1} / {pageCount}
             </span>
             <Button
@@ -230,18 +293,16 @@ export function TicketsTable({ tickets, total, isPending, error, sorting, onSort
               size="icon-sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="text-slate-400 hover:text-white"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => table.lastPage()}
               disabled={!table.getCanNextPage()}
-              className="text-slate-400 hover:text-white"
             >
-              <ChevronsRight className="h-4 w-4" />
+              <ChevronsRight className="size-4" />
             </Button>
           </div>
         </div>

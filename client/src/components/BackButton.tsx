@@ -9,9 +9,9 @@ interface BackButtonProps {
 
 export function BackButton({ to, label }: BackButtonProps) {
   return (
-    <Button variant="ghost" size="sm" asChild className="text-slate-400 hover:text-white -ml-2 mb-4">
+    <Button variant="ghost" size="sm" asChild className="-ml-2 mb-4 text-muted-foreground hover:text-foreground">
       <Link to={to}>
-        <ArrowLeft className="h-4 w-4 mr-1" />
+        <ArrowLeft className="size-4" />
         {label}
       </Link>
     </Button>

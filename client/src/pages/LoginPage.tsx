@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LifeBuoyIcon, MailIcon, LockIcon } from "lucide-react";
+import { RadioTowerIcon, MailIcon, LockIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,12 +49,18 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-            <LifeBuoyIcon className="size-7" />
+          <span className="relative mb-4 flex size-14 items-center justify-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/25">
+            <RadioTowerIcon className="size-7" />
+            <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-sla-fresh ring-2 ring-background sla-pulse" />
           </span>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">
+            Helpdesk · Control Room
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            Sign in to your shift
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Sign in to your Helpdesk account
+            Access the support queue and dashboard
           </p>
         </div>
 
@@ -115,8 +121,8 @@ export function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Enjay Helpdesk · Support Portal
+        <p className="mt-6 text-center font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+          Enjay Helpdesk · Support Ops
         </p>
       </div>
     </div>

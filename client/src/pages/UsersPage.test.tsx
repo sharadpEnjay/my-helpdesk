@@ -13,8 +13,8 @@ const MOCK_USERS = [
   { id: "2", name: "Bob Agent", email: "bob@example.com", role: "agent" as const, createdAt: "2025-02-20T00:00:00Z" },
 ];
 
-function renderUsersPage(props: { userName: string; role?: string } = { userName: "Admin", role: "admin" }) {
-  return renderWithProviders(<UsersPage {...props} />);
+function renderUsersPage() {
+  return renderWithProviders(<UsersPage />);
 }
 
 describe("UsersPage", () => {
@@ -25,7 +25,7 @@ describe("UsersPage", () => {
   test("renders the page heading", () => {
     mockedAxios.get.mockReturnValue(new Promise(() => {}));
     renderUsersPage();
-    expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agents" })).toBeInTheDocument();
   });
 
   test("shows skeleton table while loading", () => {
@@ -84,7 +84,7 @@ describe("UsersPage", () => {
     mockedAxios.get.mockResolvedValue({ data: [] });
     renderUsersPage();
 
-    expect(await screen.findByText("No users found")).toBeInTheDocument();
+    expect(await screen.findByText("No agents yet.")).toBeInTheDocument();
   });
 
   test("shows error message on fetch failure", async () => {
@@ -99,13 +99,6 @@ describe("UsersPage", () => {
     renderUsersPage();
 
     expect(mockedAxios.get).toHaveBeenCalledWith("/api/users");
-  });
-
-  test("renders the navbar with user name", () => {
-    mockedAxios.get.mockReturnValue(new Promise(() => {}));
-    renderUsersPage({ userName: "Test User", role: "admin" });
-
-    expect(screen.getByText("Test User")).toBeInTheDocument();
   });
 
   test("opens create user dialog when clicking Create User button", async () => {

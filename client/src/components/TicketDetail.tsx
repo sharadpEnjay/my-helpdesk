@@ -4,6 +4,8 @@ import DOMPurify from "dompurify";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type Ticket } from "core/schemas/ticket";
+import { getSlaSignal } from "@/lib/sla";
+import { cn } from "@/lib/utils";
 
 interface TicketDetailProps {
   ticket: Ticket;
@@ -17,25 +19,50 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
         .then((res) => res.data),
   });
 
+  const sla = getSlaSignal(ticket.status, ticket.updatedAt);
+
   return (
     <>
-      <div>
-        <h1 className="text-3xl font-bold mb-2">{ticket.subject}</h1>
-        <div className="flex items-center gap-3 text-sm text-slate-400">
-          <span>#{ticket.id}</span>
-          <span>&middot;</span>
-          <span>{new Date(ticket.createdAt).toLocaleString()}</span>
+      <div className="mt-4">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm text-muted-foreground">
+            #{String(ticket.id).padStart(4, "0")}
+          </span>
+          <span
+            className="flex items-center gap-1.5 font-mono text-xs"
+            style={{ color: sla.color }}
+          >
+            <span
+              className={cn("size-2 rounded-full", sla.pulse && "sla-pulse")}
+              style={{ backgroundColor: sla.color }}
+            />
+            {sla.label} old
+          </span>
+        </div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          {ticket.subject}
+        </h1>
+        <p className="mt-1 font-mono text-xs text-muted-foreground">
+          Opened {new Date(ticket.createdAt).toLocaleString()}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="mb-1 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+          From
+        </div>
+        <div className="text-sm font-medium text-foreground">
+          {ticket.senderName}
+        </div>
+        <div className="mt-0.5 font-mono text-xs text-muted-foreground">
+          {ticket.senderEmail}
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-        <div className="text-xs text-slate-500 mb-1">From</div>
-        <div className="text-sm text-white">{ticket.senderName}</div>
-        <div className="text-xs text-slate-400 mt-0.5">{ticket.senderEmail}</div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
-        <h2 className="text-sm font-medium text-slate-400 mb-3">Message</h2>
+      <div className="rounded-lg border border-border bg-surface p-6">
+        <h2 className="mb-3 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+          Message
+        </h2>
         {ticket.bodyHtml ? (
           <div
             className="prose prose-invert prose-sm max-w-none"
@@ -44,32 +71,38 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
             }}
           />
         ) : (
-          <p className="text-slate-200 whitespace-pre-wrap">{ticket.body}</p>
+          <p className="whitespace-pre-wrap text-sm text-foreground/90">
+            {ticket.body}
+          </p>
         )}
       </div>
 
       {summarizeMutation.data && (
-        <div className="rounded-2xl border border-purple-500/20 bg-purple-500/[0.05] backdrop-blur-xl p-6">
-          <h2 className="text-sm font-medium text-purple-300 mb-3">Summary</h2>
-          <p className="text-sm text-slate-200 whitespace-pre-wrap">
+        <div className="rounded-lg border border-primary/25 bg-primary/[0.06] p-6">
+          <h2 className="mb-3 flex items-center gap-1.5 font-mono text-[0.65rem] uppercase tracking-wider text-primary">
+            <Sparkles className="size-3" />
+            AI Summary
+          </h2>
+          <p className="whitespace-pre-wrap text-sm text-foreground/90">
             {summarizeMutation.data.summary}
           </p>
         </div>
       )}
 
       {summarizeMutation.isError && (
-        <p className="text-xs text-red-400">Failed to generate summary. Please try again.</p>
+        <p className="font-mono text-xs text-sla-breach">
+          Failed to generate summary. Please try again.
+        </p>
       )}
 
       <Button
         type="button"
         size="sm"
         variant="outline"
-        className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
         disabled={summarizeMutation.isPending}
         onClick={() => summarizeMutation.mutate()}
       >
-        <Sparkles className="h-4 w-4 mr-1" />
+        <Sparkles className="size-4" />
         {summarizeMutation.isPending ? "Summarizing..." : "Summarize"}
       </Button>
     </>

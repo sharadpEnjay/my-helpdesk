@@ -2,7 +2,6 @@ import { useState, useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { SortingState, PaginationState } from "@tanstack/react-table";
 import axios from "axios";
-import { Navbar } from "../components/Navbar";
 import { TicketsTable, type Ticket } from "../components/TicketsTable";
 import { TicketFilters, type TicketFilterValues } from "../components/TicketFilters";
 
@@ -13,12 +12,7 @@ interface TicketsResponse {
   pageSize: number;
 }
 
-interface TicketsPageProps {
-  userName: string;
-  role?: string;
-}
-
-export function TicketsPage({ userName, role }: TicketsPageProps) {
+export function TicketsPage() {
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -58,26 +52,34 @@ export function TicketsPage({ userName, role }: TicketsPageProps) {
   };
 
   return (
-    <div className="min-h-screen text-foreground">
-      <Navbar userName={userName} role={role} />
-      <div className="px-8 pb-8 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-4xl font-bold">Tickets</h1>
+    <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-8">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">
+            Support
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Queue</h1>
         </div>
-
-        <TicketFilters filters={filters} onFiltersChange={handleFiltersChange} />
-
-        <TicketsTable
-          tickets={data?.data ?? []}
-          total={data?.total ?? 0}
-          isPending={isPending}
-          error={error}
-          sorting={sorting}
-          onSortingChange={setSorting}
-          pagination={pagination}
-          onPaginationChange={setPagination}
-        />
+        {data && (
+          <span className="font-mono text-xs text-muted-foreground">
+            <span className="tabular-nums text-foreground/80">{data.total}</span>{" "}
+            in queue
+          </span>
+        )}
       </div>
-    </div>
+
+      <TicketFilters filters={filters} onFiltersChange={handleFiltersChange} />
+
+      <TicketsTable
+        tickets={data?.data ?? []}
+        total={data?.total ?? 0}
+        isPending={isPending}
+        error={error}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+      />
+    </main>
   );
 }

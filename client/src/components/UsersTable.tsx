@@ -28,27 +28,36 @@ interface UsersTableProps {
   onDelete: (user: User) => void;
 }
 
+const HEAD_CLASS =
+  "h-10 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-muted-foreground";
+
+function HeaderRow() {
+  return (
+    <TableRow className="border-border hover:bg-transparent">
+      <TableHead className={HEAD_CLASS}>Name</TableHead>
+      <TableHead className={HEAD_CLASS}>Email</TableHead>
+      <TableHead className={HEAD_CLASS}>Role</TableHead>
+      <TableHead className={HEAD_CLASS}>Joined</TableHead>
+      <TableHead className={`${HEAD_CLASS} w-12`}></TableHead>
+    </TableRow>
+  );
+}
+
 export function UsersTable({ users, isPending, error, onEdit, onDelete }: UsersTableProps) {
   if (isPending) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-white/[0.02]">
-              <TableHead className="text-slate-400">Name</TableHead>
-              <TableHead className="text-slate-400">Email</TableHead>
-              <TableHead className="text-slate-400">Role</TableHead>
-              <TableHead className="text-slate-400">Joined</TableHead>
-              <TableHead className="text-slate-400 w-12"></TableHead>
-            </TableRow>
+            <HeaderRow />
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i} className="border-white/10">
-                <TableCell><Skeleton className="h-4 w-24 bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-40 bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-14 rounded-full bg-white/10" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20 bg-white/10" /></TableCell>
+              <TableRow key={i} className="border-border">
+                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-14 rounded-full" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell></TableCell>
               </TableRow>
             ))}
@@ -60,42 +69,35 @@ export function UsersTable({ users, isPending, error, onEdit, onDelete }: UsersT
 
   if (error) {
     return (
-      <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
+      <div className="rounded-lg border border-sla-breach/25 bg-sla-breach/10 p-4 text-sm text-sla-breach">
         {error.message}
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <Table>
         <TableHeader>
-          <TableRow className="border-white/10 hover:bg-white/[0.02]">
-            <TableHead className="text-slate-400">Name</TableHead>
-            <TableHead className="text-slate-400">Email</TableHead>
-            <TableHead className="text-slate-400">Role</TableHead>
-            <TableHead className="text-slate-400">Joined</TableHead>
-            <TableHead className="text-slate-400 w-12"></TableHead>
-          </TableRow>
+          <HeaderRow />
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id} className="border-white/10 hover:bg-white/[0.04]">
-              <TableCell className="font-medium text-white">{user.name}</TableCell>
-              <TableCell className="text-slate-300">{user.email}</TableCell>
+            <TableRow key={user.id} className="border-border transition-colors hover:bg-accent/50">
+              <TableCell className="py-3 font-medium text-foreground">{user.name}</TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">{user.email}</TableCell>
               <TableCell>
-                <Badge variant={user.role === Role.admin ? "default" : "secondary"}>
+                <Badge variant={user.role === Role.admin ? "default" : "secondary"} className="capitalize">
                   {user.role}
                 </Badge>
               </TableCell>
-              <TableCell className="text-slate-400">
+              <TableCell className="font-mono text-xs text-muted-foreground">
                 {new Date(user.createdAt).toLocaleDateString()}
               </TableCell>
               <TableCell className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="text-slate-400 hover:text-white hover:bg-white/10"
                   onClick={() => onEdit(user)}
                   aria-label={`Edit ${user.name}`}
                 >
@@ -105,7 +107,7 @@ export function UsersTable({ users, isPending, error, onEdit, onDelete }: UsersT
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                    className="hover:bg-sla-breach/10 hover:text-sla-breach"
                     onClick={() => onDelete(user)}
                     aria-label={`Delete ${user.name}`}
                   >
@@ -116,9 +118,9 @@ export function UsersTable({ users, isPending, error, onEdit, onDelete }: UsersT
             </TableRow>
           ))}
           {users.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center text-slate-500 py-8">
-                No users found
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={5} className="py-14 text-center font-mono text-sm text-muted-foreground">
+                No agents yet.
               </TableCell>
             </TableRow>
           )}

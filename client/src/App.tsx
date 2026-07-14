@@ -7,6 +7,7 @@ import { UsersPage } from "@/pages/UsersPage";
 import { TicketDetailPage } from "@/pages/TicketDetailPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { AppLayout } from "@/components/AppLayout";
 import "./App.css";
 
 function App() {
@@ -27,43 +28,13 @@ function App() {
         element={session ? <Navigate to="/" replace /> : <LoginPage />}
       />
       <Route element={<ProtectedRoute />}>
-        <Route
-          path="/"
-          element={
-            <HomePage
-              userName={session?.user?.name ?? ""}
-              role={session?.user?.role ?? ""}
-            />
-          }
-        />
-        <Route
-          path="/tickets"
-          element={
-            <TicketsPage
-              userName={session?.user?.name ?? ""}
-              role={session?.user?.role ?? ""}
-            />
-          }
-        />
-        <Route
-          path="/tickets/:id"
-          element={
-            <TicketDetailPage
-              userName={session?.user?.name ?? ""}
-              role={session?.user?.role ?? ""}
-            />
-          }
-        />
-        <Route element={<AdminRoute />}>
-          <Route
-            path="/users"
-            element={
-              <UsersPage
-                userName={session?.user?.name ?? ""}
-                role={session?.user?.role ?? ""}
-              />
-            }
-          />
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/tickets" element={<TicketsPage />} />
+          <Route path="/tickets/:id" element={<TicketDetailPage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/users" element={<UsersPage />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

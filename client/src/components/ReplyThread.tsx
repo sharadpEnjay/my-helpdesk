@@ -66,86 +66,102 @@ export function ReplyThread({ ticket }: ReplyThreadProps) {
   return (
     <>
       {replies && replies.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-slate-400">Replies</h2>
-          {replies.map((reply) => (
-            <div
-              key={reply.id}
-              className={`rounded-2xl border p-4 ${
-                reply.senderType === "agent"
-                  ? "border-purple-500/20 bg-purple-500/[0.05] ml-6"
-                  : "border-white/10 bg-white/[0.03] mr-6"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      reply.senderType === "agent"
-                        ? "bg-purple-500/20 text-purple-300"
-                        : "bg-slate-500/20 text-slate-300"
-                    }`}
-                  >
-                    {reply.senderType === "agent" ? "Agent" : "Customer"}
-                  </span>
-                  <span className="text-sm text-slate-300">
-                    {reply.user?.name ?? senderName}
+        <div className="space-y-3">
+          <h2 className="font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+            Conversation
+          </h2>
+          {replies.map((reply) => {
+            const isAgent = reply.senderType === "agent";
+            return (
+              <div
+                key={reply.id}
+                className={`rounded-lg border p-4 ${
+                  isAgent
+                    ? "ml-6 border-primary/25 bg-primary/[0.06]"
+                    : "mr-6 border-border bg-surface"
+                }`}
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider ${
+                        isAgent
+                          ? "bg-primary/15 text-primary"
+                          : "bg-secondary text-secondary-foreground"
+                      }`}
+                    >
+                      <span
+                        className={`size-1.5 rounded-full ${
+                          isAgent ? "bg-primary" : "bg-sla-calm"
+                        }`}
+                      />
+                      {isAgent ? "Agent" : "Customer"}
+                    </span>
+                    <span className="text-sm text-foreground/90">
+                      {reply.user?.name ?? senderName}
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {new Date(reply.createdAt).toLocaleString()}
                   </span>
                 </div>
-                <span className="text-xs text-slate-500">
-                  {new Date(reply.createdAt).toLocaleString()}
-                </span>
+                {reply.bodyHtml ? (
+                  <div
+                    className="prose prose-invert prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(reply.bodyHtml),
+                    }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm text-foreground/90">
+                    {reply.body}
+                  </p>
+                )}
               </div>
-              {reply.bodyHtml ? (
-                <div
-                  className="prose prose-invert prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(reply.bodyHtml),
-                  }}
-                />
-              ) : (
-                <p className="text-sm text-slate-200 whitespace-pre-wrap">{reply.body}</p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4 space-y-3"
+        className="space-y-3 rounded-lg border border-border bg-surface p-4"
       >
-        <h2 className="text-sm font-medium text-slate-400">Add Reply</h2>
+        <h2 className="font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+          Reply
+        </h2>
         <Textarea
           placeholder="Type your reply..."
-          className="bg-white/[0.05] border-white/10 text-white placeholder:text-slate-500 resize-none"
+          className="resize-none"
           {...form.register("body")}
         />
         {mutation.isError && (
-          <p className="text-xs text-red-400">Failed to send reply. Please try again.</p>
+          <p className="font-mono text-xs text-sla-breach">
+            Failed to send reply. Please try again.
+          </p>
         )}
         {polishMutation.isError && (
-          <p className="text-xs text-red-400">Failed to polish reply. Please try again.</p>
+          <p className="font-mono text-xs text-sla-breach">
+            Failed to polish reply. Please try again.
+          </p>
         )}
         <div className="flex justify-end gap-2">
           <Button
             type="button"
             size="sm"
             variant="outline"
-            className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
             disabled={polishMutation.isPending || !form.watch("body")?.trim()}
             onClick={() => polishMutation.mutate(form.getValues("body"))}
           >
-            <Sparkles className="h-4 w-4 mr-1" />
+            <Sparkles className="size-4" />
             {polishMutation.isPending ? "Polishing..." : "Polish"}
           </Button>
           <Button
             type="submit"
             size="sm"
-            className="bg-purple-600 text-white hover:bg-purple-500"
             disabled={mutation.isPending || !form.watch("body")?.trim()}
           >
-            <Send className="h-4 w-4 mr-1" />
+            <Send className="size-4" />
             {mutation.isPending ? "Sending..." : "Send Reply"}
           </Button>
         </div>
