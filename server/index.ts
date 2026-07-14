@@ -1,3 +1,7 @@
+// Must be imported before any other module so Sentry can instrument them.
+import "./instrument";
+
+import * as Sentry from "@sentry/bun";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -24,6 +28,7 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(",") ?? ["http://localhost:5173"],
   credentials: true,
 }));
+
 
 // Better Auth handler must be before express.json()
 app.all("/api/auth/{*splat}", toNodeHandler(auth));
@@ -54,6 +59,9 @@ app.use("/api/tickets", ticketsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/webhooks", webhooksRouter);
 app.use("/api/dashboard", dashboardRouter);
+
+// Sentry error handler must be after all routes and before any other error middleware.
+Sentry.setupExpressErrorHandler(app);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);

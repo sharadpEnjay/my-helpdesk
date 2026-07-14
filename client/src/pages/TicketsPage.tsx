@@ -19,6 +19,7 @@ interface TicketsPageProps {
 }
 
 export function TicketsPage({ userName, role }: TicketsPageProps) {
+
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);

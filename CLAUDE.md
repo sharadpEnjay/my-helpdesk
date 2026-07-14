@@ -106,6 +106,13 @@ cd server && bunx prisma studio            # visual database browser
 - `IMAP_USER` / `IMAP_PASSWORD` — Gmail address + **App Password** the poller reads inbound email from (needs 2-Step Verification). Poller is skipped if unset
 - `IMAP_POLL_INTERVAL_MS` — inbound poll interval (default `30000`)
 - `IMAP_MAILBOX` — the **only** Gmail label/folder the poller reads (default `Test`); all other mail is ignored. Every unread message in it becomes a ticket (new) or threads onto an existing one (reply)
+- `SENTRY_DSN` — server error/tracing DSN for `@sentry/bun` (`server/instrument.ts`). Left unset locally → SDK disabled (no-op)
+- `VITE_SENTRY_DSN` — **client** error/tracing/replay DSN for `@sentry/react` (`client/src/lib/sentry.ts`). Must be `VITE_`-prefixed to reach the browser; set in `client/.env`. Unset → SDK disabled
+
+### Error Monitoring (Sentry)
+- **Server**: `server/instrument.ts` calls `Sentry.init()` and is imported on the **first line** of `server/index.ts` (before any other module) so instrumentation hooks in. `Sentry.setupExpressErrorHandler(app)` is registered after all routes, before the fallback error middleware.
+- **Client**: `client/src/lib/sentry.ts` calls `Sentry.init()` (browser tracing + session replay) and is the **first import** in `main.tsx`; the app tree is wrapped in `Sentry.ErrorBoundary`.
+- Both are no-ops when their DSN env var is unset, so local dev needs no Sentry account.
 
 ### Email (SendGrid outbound + IMAP inbound)
 - **Outbound**: `server/workers/send-email.ts` (`send-email` queue) sends via `@sendgrid/mail`. Enqueued from `POST /api/tickets/:id/replies` (agent replies) and `workers/auto-resolve-ticket.ts` (AI replies) using `utils/send-email.ts`.
