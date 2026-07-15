@@ -52,7 +52,7 @@ function PageHeader({ open, total }: { open: number; total: number }) {
           style={{ backgroundColor: load.color }}
         />
         <span className="font-mono text-xs text-muted-foreground">
-          Queue load
+          Ticket load
         </span>
         <span
           className="font-mono text-xs font-medium"

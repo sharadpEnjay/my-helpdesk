@@ -46,7 +46,7 @@ describe("TicketsPage", () => {
   test("renders the page heading", () => {
     mockedAxios.get.mockReturnValue(new Promise(() => {}));
     renderTicketsPage();
-    expect(screen.getByRole("heading", { name: "Queue" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tickets" })).toBeInTheDocument();
   });
 
   test("renders table column headers", async () => {
@@ -70,7 +70,7 @@ describe("TicketsPage", () => {
     mockedAxios.get.mockResolvedValue(mockResponse([]));
     renderTicketsPage();
 
-    expect(await screen.findByText(/Queue clear/)).toBeInTheDocument();
+    expect(await screen.findByText(/All clear/)).toBeInTheDocument();
   });
 
   test("shows error message on fetch failure", async () => {

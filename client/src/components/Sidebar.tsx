@@ -28,7 +28,7 @@ function useClock() {
 function navLinks(role?: string) {
   return [
     { to: "/", label: "Dashboard", icon: LayoutDashboardIcon, end: true },
-    { to: "/tickets", label: "Queue", icon: TicketIcon, end: false },
+    { to: "/tickets", label: "Tickets", icon: TicketIcon, end: false },
     ...(role === Role.admin
       ? [{ to: "/users", label: "Agents", icon: UsersIcon, end: false }]
       : []),

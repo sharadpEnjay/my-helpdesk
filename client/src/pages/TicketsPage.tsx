@@ -58,7 +58,7 @@ export function TicketsPage() {
           <p className="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">
             Support
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Queue</h1>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Tickets</h1>
         </div>
         {data && (
           <span className="font-mono text-xs text-muted-foreground">

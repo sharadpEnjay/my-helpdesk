@@ -254,7 +254,7 @@ export function TicketsTable({
                   className="py-14 text-center"
                 >
                   <p className="font-mono text-sm text-muted-foreground">
-                    Queue clear — no tickets match.
+                    All clear — no tickets match.
                   </p>
                 </TableCell>
               </TableRow>
